@@ -46,7 +46,7 @@ python taskhawk.py
 ```
 脚本中已有默认配置
 
-### 2️⃣ **配置运行**
+### 2️⃣ **通过配置文件运行**
 
 ```bash
 python taskhawk.py --config config.yaml
@@ -168,12 +168,6 @@ webhook:
 
 欢迎贡献代码！请先 fork 项目，然后提交 Pull Request 😃  
 如果你喜欢该项目的话欢迎添加star！ ⭐
-
----
-
-## 🗡️ 开发计划
-
-
 
 ---
 
