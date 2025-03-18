@@ -45,14 +45,14 @@ pip install -r requirements.txt
 ### 1️⃣ **直接运行**  
 
 ```bash
-python TaskNya.py
+python main.py
 ```
 脚本中已有默认配置
 
 ### 2️⃣ **通过配置文件运行**
 
 ```bash
-python TaskNya.py --config config.yaml
+python main.py --config config.yaml
 ```
 其中 `config.yaml` 是你的自定义配置文件。
 当然，你也可以把脚本嵌入到其他程序中来联合使用。
