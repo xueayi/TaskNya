@@ -65,7 +65,7 @@ DEFAULT_CONFIG = {
         "include_gpu_info": True,
         "include_gpu_info_title":"GPU信息",
 
-        "footer": "此消息由自动监控系统发送"
+        "footer": "此消息由TaskNya发送"
     }
 }
 

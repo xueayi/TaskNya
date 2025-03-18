@@ -1,10 +1,10 @@
-# 🦅 TaskHawk - 智能任务监控系统
+# 🐈 TaskNya - 实时任务监控系统
 
 ![Python](https://img.shields.io/badge/Python-3.7%2B-blue.svg) 
 ![License](https://img.shields.io/badge/License-MIT-green.svg) 
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)  
 
-**TaskHawk** 是一个通用的任务监控与通知工具，适用于 **深度学习训练、服务器任务、批处理脚本、日志监控、资源管理等**。  
+**TaskNya** 是一个通用的任务监控与通知工具，适用于 **深度学习训练、服务器任务、批处理脚本、日志监控、资源管理等**。  
 它能够 **检测任务完成状态**（基于文件、日志、GPU 资源），并通过 **Webhook** 发送通知到 **任意支持 Webhook 的平台**（如 飞书、钉钉、Slack、Discord、Teams 等）。  
 
 ---
@@ -29,8 +29,8 @@
 ## 🚀 安装  
 
 ```bash
-git clone https://github.com/xueayi/taskhawk.git  
-cd taskhawk  
+git clone https://github.com/xueayi/TaskNya.git  
+cd TaskNya  
 pip install -r requirements.txt  
 ```
 
@@ -45,20 +45,20 @@ pip install -r requirements.txt
 ### 1️⃣ **直接运行**  
 
 ```bash
-python taskhawk.py
+python TaskNya.py
 ```
 脚本中已有默认配置
 
 ### 2️⃣ **通过配置文件运行**
 
 ```bash
-python taskhawk.py --config config.yaml
+python TaskNya.py --config config.yaml
 ```
 其中 `config.yaml` 是你的自定义配置文件。
 当然，你也可以把脚本嵌入到其他程序中来联合使用。
 
-<img src="images/实际使用截图.png" alt="TaskHawk">
-<img src="images/飞书推送.jpg" alt="TaskHawk" height="1000" style="display: block; margin: auto;">
+<img src="images/实际使用截图.png" alt="TaskNya">
+<img src="images/飞书推送.jpg" alt="TaskNya" height="1000" style="display: block; margin: auto;">
 
 ### 3️⃣ **示例配置文件 (`config.yaml`)**  
 
@@ -115,7 +115,7 @@ webhook:
   include_gpu_info: true                    # 包含GPU信息，需要在有NVIDIA显卡的Linux环境下运行
   include_gpu_info_title: "GPU信息"          # 包含GPU信息，需要在有NVIDIA显卡的Linux环境下运行
 
-  footer: "此消息由TaskHawk发送"  # 页脚信息
+  footer: "此消息由TaskNya发送"  # 页脚信息
 
 ```
 
@@ -156,7 +156,7 @@ webhook:
 | `include_duration` | 是否包含任务运行时长 | `true` |
 | `include_hostname` | 是否包含主机名 | `true` |
 | `include_gpu_info` | 是否包含 GPU 信息，需要在有NVIDIA显卡的Linux环境下才能显示 | `true` |
-| `footer` | 通知底部文本 | `"本消息由 TaskHawk 自动发送"` |
+| `footer` | 通知底部文本 | `"本消息由 TaskNya 自动发送"` |
 
 ---
 

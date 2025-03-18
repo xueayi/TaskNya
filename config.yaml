@@ -50,4 +50,4 @@ webhook:
   include_gpu_info: true                    # 包含GPU信息
   include_gpu_info_title: "GPU信息"          # 包含GPU信息
 
-  footer: "此消息由TaskHawk发送"  # 页脚信息
+  footer: "此消息由TaskNya发送"  # 页脚信息
