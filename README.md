@@ -271,3 +271,123 @@ TaskNya/
 MIT License - 你可以自由使用和修改本项目。  
 
 ---
+
+## 🐳 Docker 部署
+
+### 1. 使用 Docker Compose（推荐）
+
+1. **克隆项目并进入目录**
+```bash
+git clone https://github.com/xueayi/TaskNya.git
+cd TaskNya
+```
+
+2. **启动服务**
+```bash
+docker-compose up -d
+```
+
+3. **查看日志**
+```bash
+docker-compose logs -f
+```
+
+4. **停止服务**
+```bash
+docker-compose down
+```
+
+### 2. 使用 Docker 命令
+
+1. **构建镜像**
+```bash
+docker build -t tasknya .
+```
+
+2. **运行容器**
+```bash
+docker run -d \
+  --name tasknya \
+  -p 5000:5000 \
+  -v $(pwd)/configs:/app/configs \
+  -v $(pwd)/logs:/app/logs \
+  -v $(pwd)/monitor_targets:/app/monitor_targets \
+  tasknya
+```
+
+### 3. 文件映射说明
+
+为了使 TaskNya 能够正常监控文件和日志，需要正确设置文件映射：
+
+1. **基础目录映射**
+   - `./configs:/app/configs`: 配置文件目录，存放配置文件
+   - `./logs:/app/logs`: 日志文件目录，存放应用日志
+   - `./monitor_targets:/app/monitor_targets`: 默认监控目标目录，用于存放需要监控的文件
+
+2. **额外监控目标映射**
+   如果要监控其他位置的文件或日志，需要添加相应的映射。例如：
+   ```yaml
+   volumes:
+     # 监控深度学习训练输出
+     - /path/to/training/output:/app/monitor/training
+     # 监控日志文件
+     - /path/to/log/files:/app/monitor/logs
+   ```
+
+3. **配置文件修改**
+   在 `configs/default.yaml` 中，确保文件路径使用容器内的路径：
+   ```yaml
+   monitor:
+     # 监控默认目录中的文件
+     check_file_path: "/app/monitor_targets/model_final.pth"
+     # 或监控映射的其他目录
+     check_file_path: "/app/monitor/training/model_final.pth"
+     check_log_path: "/app/monitor/logs/training.log"
+   ```
+
+### 4. 注意事项
+
+1. **路径映射**
+   - 使用绝对路径进行映射
+   - 确保目录存在且有正确的权限
+   - 容器内路径必须与配置文件中的路径一致
+
+2. **GPU支持**
+   如果需要使用GPU监控功能，需要安装nvidia-docker并添加运行时参数：
+   ```bash
+   # 使用 Docker 命令
+   docker run --gpus all ...
+
+   # 或在 docker-compose.yml 中添加
+   deploy:
+     resources:
+       reservations:
+         devices:
+           - driver: nvidia
+             count: all
+             capabilities: [gpu]
+   ```
+
+3. **端口修改**
+   如果需要修改端口映射，可以：
+   ```yaml
+   # 在 docker-compose.yml 中修改
+   ports:
+     - "8080:5000"  # 将8080映射到容器的5000端口
+   ```
+
+4. **持久化存储**
+   - 所有映射的目录都会持久化保存在宿主机上
+   - 容器重启不会影响已保存的数据
+   - 建议定期备份重要的配置和日志文件
+
+5. **日志查看**
+   ```bash
+   # 查看容器日志
+   docker logs -f tasknya
+
+   # 查看应用日志
+   docker exec tasknya cat /app/logs/monitor.log
+   ```
+
+---

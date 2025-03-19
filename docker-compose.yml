@@ -1,0 +1,22 @@
+version: '3'
+services:
+  tasknya:
+    build: .
+    container_name: tasknya
+    ports:
+      - "5000:5000"
+    volumes:
+      # 配置文件映射
+      - ./configs:/app/configs
+      # 日志文件映射
+      - ./logs:/app/logs
+      # 监控目标文件映射
+      - ./monitor_targets:/app/monitor_targets
+      # 可选：额外的监控目标目录映射（根据实际需求修改）
+      # - /path/to/your/training/files:/app/monitor/training
+      # - /path/to/your/log/files:/app/monitor/logs
+    environment:
+      - FLASK_APP=webui.py
+      - FLASK_RUN_PORT=5000
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped 
