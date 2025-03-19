@@ -236,6 +236,13 @@ docker-compose down
    docker exec tasknya cat /app/logs/monitor.log
    ```
 
+4. **运行异常**
+```bash
+sudo groupadd docker  # 确保 docker 组存在
+sudo usermod -aG docker $USER  # 把当前用户加入 docker 组
+newgrp docker  # 立即应用组权限，或者重新登录系统
+```
+
 ---
 
 
