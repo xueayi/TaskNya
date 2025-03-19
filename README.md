@@ -29,13 +29,17 @@
 
 ## 🚀 安装  
 
-### 1. 克隆项目
+### doceker的安装请跳到后文
+
+### 非docker的安装方式
+
+#### 1. 克隆项目
 ```bash
 git clone https://github.com/xueayi/TaskNya.git  
 cd TaskNya  
 ```
 
-### 2. 安装依赖
+#### 2. 安装依赖
 ```bash
 # 安装基本依赖
 pip install -r requirements.txt
@@ -346,7 +350,7 @@ webhook:
 2. GPU监控功能需要NVIDIA显卡支持
 3. 时间相关的配置单位均为秒
 4. Webhook支持所有标准的Webhook接口，可以根据实际需求调整消息格式
-5. ![飞书webhook机器人使用说明](https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot)
+5. [飞书webhook机器人使用说明](https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot)
 
 ### 5️⃣ **目录结构**
 
