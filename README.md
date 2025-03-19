@@ -17,10 +17,10 @@
 - [x] **Webhook 通知**：支持 **飞书、钉钉、Slack、Discord、Teams** 等平台，可自定义通知内容。  
 - [x] **可自定义配置**：支持 **YAML 配置文件**，可调整检测规则和通知格式。  
 - [x] **Web界面**：提供直观的Web配置界面，可实时修改和应用配置。
+- [X] **docker**：支持docker部署。
+- [X] **Windows环境适配**：可以在Windows中运行。
 - [ ] examples不同场景范例
-- [ ] docker
 - [ ] Pypl
-- [ ] Windows环境适配
 - [ ] 邮箱推送支持
 - [ ] 企业微信推送支持
 - [ ] 更多可选触发条件预设
@@ -203,6 +203,7 @@ docker-compose down
      check_file_path: "/app/monitor/training/model_final.pth"
      check_log_path: "/app/monitor/logs/training.log"
    ```
+   如果映射该文件夹，必须确保文件夹内含有default.yaml配置，否则程序会报错
 
 #### 注意事项
 
