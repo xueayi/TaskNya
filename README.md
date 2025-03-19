@@ -115,11 +115,11 @@ docker pull xueayis/tasknya:latest
 ```
 
 2. **运行容器**
+在要部署的目录下创建docker-compose.yml，创建文件夹logs和monitor_targets，并填入以下内容
 ```bash
 docker run -d \
   --name tasknya \
   -p 5000:5000 \
-  -v $(pwd)/configs:/app/configs \
   -v $(pwd)/logs:/app/logs \
   -v $(pwd)/monitor_targets:/app/monitor_targets \
   -e FLASK_APP=webui.py \
@@ -131,9 +131,9 @@ docker run -d \
 
 #### 或者使用 Docker Compose
 
-1. **创建compose文件**
+3. **创建compose文件**
 
-在要部署的目录下创建docker-compose.yml并填入以下内容
+在要部署的目录下创建docker-compose.yml，创建文件夹logs和monitor_targets，并填入以下内容
 ```docker-compose.yml
 version: '3'
 services:
@@ -143,8 +143,8 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      # 配置文件映射
-      - ./configs:/app/configs
+      # 配置文件映射，此文件夹内必须有default.yaml文件
+      #- ./configs:/app/configs
       # 日志文件映射
       - ./logs:/app/logs
       # 监控目标文件映射
@@ -159,17 +159,17 @@ services:
     restart: unless-stopped 
 ```
 
-2. **启动服务**
+4. **启动服务**
 ```bash
 docker-compose up -d
 ```
 
-3. **查看日志**
+5. **查看日志**
 ```bash
 docker-compose logs -f
 ```
 
-4. **停止服务**
+6. **停止服务**
 ```bash
 docker-compose down
 ```

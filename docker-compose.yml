@@ -6,8 +6,8 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      # 配置文件映射
-      - ./configs:/app/configs
+      # 配置文件映射，此文件夹内必须有default.yaml文件
+      #- ./configs:/app/configs
       # 日志文件映射
       - ./logs:/app/logs
       # 监控目标文件映射

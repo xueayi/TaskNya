@@ -42,7 +42,7 @@ DEFAULT_CONFIG = {
     "webhook": {
         "enabled": True,
         "url": "https://open.feishu.cn/open-apis/bot/v2/hook/yoururl",
-        "title": "🎉 深度学习训练完成通知",
+        "title": "🎉 任务完成通知",
         "color": "green",
         "include_project_name": True,
         "include_project_name_title":"训练项目",
@@ -261,7 +261,7 @@ class TrainingMonitor:
             content_items.append(f"**任务项目**: {training_info['project_name']}")
             content_items.append(f"**总耗时**: {training_info['duration']}")
         
-        content = "**模型任务已完成！**\n\n" + "\n".join(content_items)
+        content = "**任务已完成！**\n\n" + "\n".join(content_items)
         
         # 构建飞书消息
         message = {

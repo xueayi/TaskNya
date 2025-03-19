@@ -1,6 +1,6 @@
 monitor:
   check_file_enabled: true
-  check_file_path: ./output/model_final.pth
+  check_file_path: /app/monitor_targets/test.txt
   check_gpu_power_consecutive_checks: 3
   check_gpu_power_enabled: true
   check_gpu_power_gpu_ids: all
@@ -12,9 +12,9 @@ monitor:
   - 任务完成
   - 训练完成
   - Epoch [300/300]
-  check_log_path: ./logs/training.log
+  check_log_path: /app/monitor_targets/test.log
   logprint: 60
-  project_name: 深度学习训练
+  project_name: 监控任务
   timeout: null
 webhook:
   color: green
@@ -23,7 +23,7 @@ webhook:
   include_duration: true
   include_duration_title: 总耗时测试
   include_end_time: true
-  include_end_time_title: 训练结束时间
+  include_end_time_title: 任务结束时间
   include_gpu_info: true
   include_gpu_info_title: GPU信息
   include_hostname: true
@@ -31,8 +31,8 @@ webhook:
   include_method: true
   include_method_title: 系统判断依据
   include_project_name: true
-  include_project_name_title: 训练项目
+  include_project_name_title: 监控任务
   include_start_time: true
-  include_start_time_title: 训练开始
-  title: 🎉 深度学习训练完成通知
+  include_start_time_title: 任务开始
+  title: 🎉 监控任务完成通知
   url: https://open.feishu.cn/open-apis/bot/v2/hook/yoururl
