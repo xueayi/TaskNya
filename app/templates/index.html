@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskNya 配置管理</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">TaskNya 配置管理</h1>
+        
+        <!-- 控制面板 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>控制面板</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <button id="startBtn" class="btn btn-success" onclick="startMonitor()">
+                            <i class="bi bi-play-fill"></i> 开始检测
+                        </button>
+                        <button id="stopBtn" class="btn btn-danger" onclick="stopMonitor()" disabled>
+                            <i class="bi bi-stop-fill"></i> 停止检测
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日志看板 -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>运行日志</h3>
+                <button class="btn btn-sm btn-outline-secondary" onclick="clearLogs()">
+                    <i class="bi bi-trash"></i> 清空日志
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="logPanel" class="bg-dark text-light p-3 rounded" style="height: 300px; overflow-y: auto; font-family: monospace;">
+                </div>
+            </div>
+        </div>
+
+        <!-- 配置保存和加载 -->
+        <div class="row mb-4">
+            <div class="col">
+                <button class="btn btn-primary" id="applyConfigBtn" onclick="applyCurrentConfig()">应用当前配置</button>
+                <button class="btn btn-success" onclick="saveConfig()">保存当前配置</button>
+                <button class="btn btn-secondary" onclick="loadConfigList()">加载已保存配置</button>
+            </div>
+        </div>
+
+        <!-- 配置表单 -->
+        <form id="configForm">
+            <!-- 监控配置 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>监控配置</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">项目名称</label>
+                        <input type="text" class="form-control" name="monitor.project_name" value="{{ config.monitor.project_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">检查间隔(秒)</label>
+                        <input type="number" class="form-control" name="monitor.check_interval" value="{{ config.monitor.check_interval }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">日志打印间隔(秒)</label>
+                        <input type="number" class="form-control" name="monitor.logprint" value="{{ config.monitor.logprint }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">监控超时时间(秒)</label>
+                        <input type="text" class="form-control" name="monitor.timeout" value="{{ config.monitor.timeout or 'None' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文件检查配置 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>文件检查配置</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="monitor.check_file_enabled" {% if config.monitor.check_file_enabled %}checked{% endif %}>
+                        <label class="form-check-label">启用文件检查</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">检查文件路径</label>
+                        <input type="text" class="form-control" name="monitor.check_file_path" value="{{ config.monitor.check_file_path }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 日志检查配置 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>日志检查配置</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="monitor.check_log_enabled" {% if config.monitor.check_log_enabled %}checked{% endif %}>
+                        <label class="form-check-label">启用日志检查</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">日志文件路径</label>
+                        <input type="text" class="form-control" name="monitor.check_log_path" value="{{ config.monitor.check_log_path }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">完成标记（每行一个）</label>
+                        <textarea class="form-control" name="monitor.check_log_markers" rows="4">{{ '\n'.join(config.monitor.check_log_markers) }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GPU功耗检查配置 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>GPU功耗检查配置</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="monitor.check_gpu_power_enabled" {% if config.monitor.check_gpu_power_enabled %}checked{% endif %}>
+                        <label class="form-check-label">启用GPU功耗检查</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">功耗阈值(瓦特)</label>
+                        <input type="number" step="0.1" class="form-control" name="monitor.check_gpu_power_threshold" value="{{ config.monitor.check_gpu_power_threshold }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">GPU ID</label>
+                        <input type="text" class="form-control" name="monitor.check_gpu_power_gpu_ids" value="{{ config.monitor.check_gpu_power_gpu_ids }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">连续检测次数</label>
+                        <input type="number" class="form-control" name="monitor.check_gpu_power_consecutive_checks" value="{{ config.monitor.check_gpu_power_consecutive_checks }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Webhook配置 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Webhook配置</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="webhook.enabled" {% if config.webhook.enabled %}checked{% endif %}>
+                        <label class="form-check-label">启用Webhook通知</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Webhook URL</label>
+                        <input type="text" class="form-control" name="webhook.url" value="{{ config.webhook.url }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">消息标题</label>
+                        <input type="text" class="form-control" name="webhook.title" value="{{ config.webhook.title }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">卡片颜色</label>
+                        <select class="form-control" name="webhook.color">
+                            <option value="green" {% if config.webhook.color == 'green' %}selected{% endif %}>绿色</option>
+                            <option value="blue" {% if config.webhook.color == 'blue' %}selected{% endif %}>蓝色</option>
+                            <option value="red" {% if config.webhook.color == 'red' %}selected{% endif %}>红色</option>
+                            <option value="grey" {% if config.webhook.color == 'grey' %}selected{% endif %}>灰色</option>
+                            <option value="turquoise" {% if config.webhook.color == 'turquoise' %}selected{% endif %}>青色</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">页脚信息</label>
+                        <input type="text" class="form-control" name="webhook.footer" value="{{ config.webhook.footer }}">
+                    </div>
+
+                    <!-- 包含的信息项配置 -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="webhook.include_project_name" {% if config.webhook.include_project_name %}checked{% endif %}>
+                                    <label class="form-check-label">包含项目名称</label>
+                                </div>
+                                <input type="text" class="form-control mt-2" name="webhook.include_project_name_title" value="{{ config.webhook.include_project_name_title }}" placeholder="标题">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="webhook.include_start_time" {% if config.webhook.include_start_time %}checked{% endif %}>
+                                    <label class="form-check-label">包含开始时间</label>
+                                </div>
+                                <input type="text" class="form-control mt-2" name="webhook.include_start_time_title" value="{{ config.webhook.include_start_time_title }}" placeholder="标题">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="webhook.include_end_time" {% if config.webhook.include_end_time %}checked{% endif %}>
+                                    <label class="form-check-label">包含结束时间</label>
+                                </div>
+                                <input type="text" class="form-control mt-2" name="webhook.include_end_time_title" value="{{ config.webhook.include_end_time_title }}" placeholder="标题">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="webhook.include_method" {% if config.webhook.include_method %}checked{% endif %}>
+                                    <label class="form-check-label">包含判断方法</label>
+                                </div>
+                                <input type="text" class="form-control mt-2" name="webhook.include_method_title" value="{{ config.webhook.include_method_title }}" placeholder="标题">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="webhook.include_duration" {% if config.webhook.include_duration %}checked{% endif %}>
+                                    <label class="form-check-label">包含任务时长</label>
+                                </div>
+                                <input type="text" class="form-control mt-2" name="webhook.include_duration_title" value="{{ config.webhook.include_duration_title }}" placeholder="标题">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="webhook.include_hostname" {% if config.webhook.include_hostname %}checked{% endif %}>
+                                    <label class="form-check-label">包含主机名</label>
+                                </div>
+                                <input type="text" class="form-control mt-2" name="webhook.include_hostname_title" value="{{ config.webhook.include_hostname_title }}" placeholder="标题">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="webhook.include_gpu_info" {% if config.webhook.include_gpu_info %}checked{% endif %}>
+                                    <label class="form-check-label">包含GPU信息</label>
+                                </div>
+                                <input type="text" class="form-control mt-2" name="webhook.include_gpu_info_title" value="{{ config.webhook.include_gpu_info_title }}" placeholder="标题">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- 保存配置模态框 -->
+        <div class="modal fade" id="saveConfigModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">保存配置</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">配置名称</label>
+                            <input type="text" class="form-control" id="configName" placeholder="请输入配置名称">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" onclick="saveConfigWithName()">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 配置列表模态框 -->
+        <div class="modal fade" id="configListModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">已保存的配置</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="list-group" id="configList"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 

@@ -1,2 +1,9 @@
-PyYAML>=5.4.1
-Requests>=2.25.1
+# 必需依赖
+flask==3.0.2
+flask-sock==0.7.0
+pyyaml==6.0.1
+requests==2.31.0
+simple-websocket==1.0.0
+
+# 可选依赖（仅在有NVIDIA显卡时需要）
+# nvidia-ml-py3==7.352.0

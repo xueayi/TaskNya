@@ -1,0 +1,38 @@
+monitor:
+  check_file_enabled: true
+  check_file_path: ./output/model_final.pth
+  check_gpu_power_consecutive_checks: 3
+  check_gpu_power_enabled: true
+  check_gpu_power_gpu_ids: all
+  check_gpu_power_threshold: 50.0
+  check_interval: 5
+  check_log_enabled: true
+  check_log_markers:
+  - Training completed
+  - 任务完成
+  - 训练完成
+  - Epoch [300/300]
+  check_log_path: ./logs/training.log
+  logprint: 60
+  project_name: 深度学习训练
+  timeout: null
+webhook:
+  color: green
+  enabled: true
+  footer: 此消息由TaskNya发送
+  include_duration: true
+  include_duration_title: 总耗时测试
+  include_end_time: true
+  include_end_time_title: 训练结束时间
+  include_gpu_info: true
+  include_gpu_info_title: GPU信息
+  include_hostname: true
+  include_hostname_title: 主机名
+  include_method: true
+  include_method_title: 系统判断依据
+  include_project_name: true
+  include_project_name_title: 训练项目
+  include_start_time: true
+  include_start_time_title: 训练开始
+  title: 🎉 深度学习训练完成通知
+  url: https://open.feishu.cn/open-apis/bot/v2/hook/yoururl

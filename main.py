@@ -11,7 +11,7 @@ from datetime import datetime
 # 配置日志
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(levelname)s - %(message)s',
-                    handlers=[logging.FileHandler("monitor.log"), 
+                    handlers=[logging.FileHandler("./logs/monitor.log", encoding='utf-8'), 
                               logging.StreamHandler()])
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ DEFAULT_CONFIG = {
         # 日志检查
         "check_log_enabled": False,
         "check_log_path": "./logs/training.log",
-        "check_log_markers": ["Training completed", "任务完成"],
+        "check_log_markers": ["Training completed", "训练完成"],
         
         # GPU功耗检查
         "check_gpu_power_enabled": False,
@@ -41,7 +41,7 @@ DEFAULT_CONFIG = {
     
     "webhook": {
         "enabled": True,
-        "url": "",
+        "url": "https://open.feishu.cn/open-apis/bot/v2/hook/yoururl",
         "title": "🎉 深度学习训练完成通知",
         "color": "green",
         "include_project_name": True,
@@ -81,6 +81,7 @@ class TrainingMonitor:
         self.config = self._load_config(config_path) if config_path else DEFAULT_CONFIG
         self.start_time = datetime.now()
         self.low_power_count = 0
+        self.should_stop = lambda: False  # 默认的停止检查函数
         
     def _load_config(self, config_path):
         """
@@ -146,20 +147,25 @@ class TrainingMonitor:
                             
         # 方法3: 检查GPU功耗是否低于阈值
         if self.config['monitor']['check_gpu_power_enabled']:
-            threshold = self.config['monitor']['check_gpu_power_threshold']
-            gpu_ids = self.config['monitor']['check_gpu_power_gpu_ids']
-            consecutive_checks = self.config['monitor']['check_gpu_power_consecutive_checks']
-            overtime = self.config['monitor']['check_interval']
-            
-            if self._check_gpu_power_below_threshold(threshold, gpu_ids):
-                self.low_power_count += 1
-                logger.info(f"GPU功耗低于阈值次数: [{self.low_power_count}/{consecutive_checks}]")
-                if self.low_power_count >= consecutive_checks:
-                    logger.info(f"GPU功耗已连续{consecutive_checks}次低于阈值{threshold}W，判定任务完成")
-                    return True ,f"GPU功耗检测"
-            else:
-                # 重置计数器
-                self.low_power_count = 0
+            try:
+                # 尝试导入nvidia-smi
+                import subprocess
+                threshold = self.config['monitor']['check_gpu_power_threshold']
+                gpu_ids = self.config['monitor']['check_gpu_power_gpu_ids']
+                consecutive_checks = self.config['monitor']['check_gpu_power_consecutive_checks']
+                overtime = self.config['monitor']['check_interval']
+                
+                if self._check_gpu_power_below_threshold(threshold, gpu_ids):
+                    self.low_power_count += 1
+                    logger.info(f"GPU功耗低于阈值次数: [{self.low_power_count}/{consecutive_checks}]")
+                    if self.low_power_count >= consecutive_checks:
+                        logger.info(f"GPU功耗已连续{consecutive_checks}次低于阈值{threshold}W，判定任务完成")
+                        return True ,f"GPU功耗检测"
+                else:
+                    # 重置计数器
+                    self.low_power_count = 0
+            except (subprocess.SubprocessError, FileNotFoundError):
+                logger.warning("未检测到NVIDIA显卡或nvidia-smi不可用，跳过GPU功耗检查")
                 
         return False, "未完成任务"
     
@@ -175,7 +181,8 @@ class TrainingMonitor:
             bool: 是否所有指定GPU的功耗都低于阈值
         """
         try:
-            # 使用nvidia-smi获取GPU功耗信息
+            # 尝试导入nvidia-smi
+            import subprocess
             output = subprocess.check_output(
                 ['nvidia-smi', '--query-gpu=index,power.draw', '--format=csv,noheader,nounits'],
                 universal_newlines=True
@@ -210,6 +217,9 @@ class TrainingMonitor:
             # 所有GPU功耗都低于阈值
             return True
             
+        except (subprocess.SubprocessError, FileNotFoundError):
+            logger.warning("未检测到NVIDIA显卡或nvidia-smi不可用")
+            return False
         except Exception as e:
             logger.error(f"检查GPU功耗失败: {str(e)}")
             return False
@@ -232,24 +242,24 @@ class TrainingMonitor:
         # 构建内容项
         content_items = []
         if self.config['webhook']['include_project_name']:
-            content_items.append(f"- {training_info['project_name_title']}: {training_info['project_name']}")
+            content_items.append(f"**{training_info['project_name_title']}**: {training_info['project_name']}")
         if self.config['webhook']['include_start_time']:
-            content_items.append(f"- {training_info['start_time_title']}: {training_info['start_time']}")
+            content_items.append(f"**{training_info['start_time_title']}**: {training_info['start_time']}")
         if self.config['webhook']['include_end_time']:
-            content_items.append(f"- {training_info['end_time_title']}: {training_info['end_time']}")
+            content_items.append(f"**{training_info['end_time_title']}**: {training_info['end_time']}")
         if self.config['webhook']['include_method']:
-            content_items.append(f"- {training_info['method_title']}: {training_info['method']}")
+            content_items.append(f"**{training_info['method_title']}**: {training_info['method']}")
         if self.config['webhook']['include_duration']:
-            content_items.append(f"- {training_info['duration_title']}: {training_info['duration']}")
+            content_items.append(f"**{training_info['duration_title']}**: {training_info['duration']}")
         if self.config['webhook']['include_hostname']:
-            content_items.append(f"- {training_info['hostname_title']}: {training_info['hostname']}")
+            content_items.append(f"**{training_info['hostname_title']}**: {training_info['hostname']}")
         if self.config['webhook']['include_gpu_info']:
-            content_items.append(f"- {training_info['gpu_info_title']}: {training_info['gpu_info']}")
+            content_items.append(f"**{training_info['gpu_info_title']}**:\n{training_info['gpu_info']}")
         
         # 确保至少有一个内容项
         if not content_items:
-            content_items.append(f"- 任务项目: {training_info['project_name']}")
-            content_items.append(f"- 总耗时: {training_info['duration']}")
+            content_items.append(f"**任务项目**: {training_info['project_name']}")
+            content_items.append(f"**总耗时**: {training_info['duration']}")
         
         content = "**模型任务已完成！**\n\n" + "\n".join(content_items)
         
@@ -317,17 +327,28 @@ class TrainingMonitor:
             str: GPU信息描述
         """
         try:
+            # 尝试导入nvidia-smi
+            import subprocess
             output = subprocess.check_output(
-                ['nvidia-smi', '--query-gpu=name,memory.used,memory.total', '--format=csv,noheader'],
+                ['nvidia-smi', '--query-gpu=index,name,memory.used,memory.total,power.draw,temperature.gpu', '--format=csv,noheader,nounits'],
                 universal_newlines=True
             )
-            #return output.strip().replace('\n', '; ')
+            
             gpu_list = output.strip().split('\n')
             formatted_info = []
+            
             for gpu in gpu_list:
-                name, mem_used, mem_total = gpu.split(',')
-                formatted_info.append(f" {name} | 已用显存: {mem_used} MiB / {mem_total} MiB")
-            return ";".join(formatted_info)
+                idx, name, mem_used, mem_total, power, temp = [x.strip() for x in gpu.split(',')]
+                gpu_info = f"GPU {idx} ({name}):\n"
+                gpu_info += f"- 功耗: {power}W\n"
+                gpu_info += f"- 温度: {temp}°C\n"
+                gpu_info += f"- 显存: {mem_used}/{mem_total}MB"
+                formatted_info.append(gpu_info)
+                
+            return "\n".join(formatted_info)
+            
+        except (subprocess.SubprocessError, FileNotFoundError):
+            return "未检测到NVIDIA显卡或nvidia-smi不可用"
         except Exception as e:
             logger.error(f"获取GPU信息失败: {str(e)}")
             return "无法获取GPU信息"
@@ -352,7 +373,7 @@ class TrainingMonitor:
         logger.info(f"开始监控任务进程: {project_name}")
         
         elapsed_time = 0
-        while True:
+        while not self.should_stop():  # 检查是否应该停止
             flag, method = self.is_training_complete()
             if flag:
                 end_time = datetime.now()
