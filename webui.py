@@ -19,4 +19,4 @@ if __name__ == '__main__':
     print("请在浏览器中访问: http://localhost:5000")
     
     # 启动Flask应用
-    app.run(debug=False, port=5000) 
+    app.run(debug=False, host='0.0.0.0', port=5000) 
