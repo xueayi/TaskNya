@@ -9,7 +9,31 @@
 
 ---
 
-## ✨ 主要功能  
+## 目录
+
+- 🐈 TaskNya - 实时任务监控系统
+  - [目录](#目录)
+  - [主要功能](#主要功能)
+  - [安装和使用](#安装和使用)
+    - [Windows中的使用方式](#windows中的使用方式)
+    - [命令行方式](#命令行方式)
+      - [克隆项目](#克隆项目)
+      - [安装依赖](#安装依赖)
+      - [命令行方式](#命令行方式)
+      - [Web界面方式（推荐）](#web界面方式推荐)
+    - [Docker方式](#docker方式)
+      - [使用 Docker 镜像](#直接使用-docker-镜像)
+      - [使用 Docker Compose](#或者使用-docker-compose)
+      - [文件映射说明](#文件映射说明)
+      - [docker使用注意事项](#docker使用注意事项)
+    - [配置文件说明](#配置文件说明)
+    - [目录结构](#目录结构)
+  - [注意事项](#注意事项)
+  - [开发 \& 贡献](#开发--贡献)
+  - [许可证](#许可证)
+---
+
+## 主要功能  
 
 - [x] **文件检测**：当指定的文件生成后，触发通知（适用于模型训练完成、数据处理完成等）。  
 - [x] **日志检测**：当日志文件中出现指定关键字时，触发通知（适用于日志分析、异常监控等）。  
@@ -19,6 +43,7 @@
 - [x] **Web界面**：提供直观的Web配置界面，可实时修改和应用配置。
 - [X] **docker**：支持docker部署。
 - [X] **Windows环境适配**：可以在Windows中运行。
+- [ ] 适配钉钉
 - [ ] examples不同场景范例
 - [ ] Pypl
 - [ ] 邮箱推送支持
@@ -27,19 +52,27 @@
 
 ---
 
-## 🚀 安装  
+## 安装和使用
 
-### doceker的安装请跳到后文
+### Windows中的使用方式
 
-### 非docker的安装方式
+- 在[发布页](https://github.com/xueayi/TaskNya/releases)下载最新程序
+- 安装 python3.8 以上运行环境
+- 双击`install_requirements.bat`程序安装依赖
+- 双击`start_webui.bat`启动程序
+- 在浏览器中访问 `http://localhost:5000` 即可打开Web界面。
 
-#### 1. 克隆项目
+### 命令行方式  
+
+#### 克隆项目
 ```bash
 git clone https://github.com/xueayi/TaskNya.git  
 cd TaskNya  
 ```
 
-#### 2. 安装依赖
+#### 安装依赖
+
+在命令行中执行
 ```bash
 # 安装基本依赖
 pip install -r requirements.txt
@@ -52,11 +85,7 @@ pip install nvidia-ml-py3==7.352.0
 > - Python 3.8 及以上
 > - GPU监控功能需要NVIDIA显卡和nvidia-smi工具（可选）
 
----
-
-## 📌 使用方法  
-
-### 1️⃣ **命令行方式**  
+#### 命令行方式
 
 ```bash
 # 使用默认配置运行
@@ -66,13 +95,11 @@ python main.py
 python main.py --config config.yaml
 ```
 
-### 2️⃣ **Web界面方式（推荐）**
+#### Web界面方式（推荐）
 
 ```bash
 # 启动Web界面
 python webui.py
-
-# 或者直接双击 start_webui.bat（Windows）
 ```
 
 Web界面功能：
@@ -109,7 +136,7 @@ Web界面功能：
 >    - Docker容器
 >    - 开发服务器
 
-### 3️⃣ **Docker方式**
+### Docker方式
 
 #### 直接使用 Docker 镜像
 
@@ -209,7 +236,7 @@ docker-compose down
    ```
    如果映射该文件夹，必须确保文件夹内含有default.yaml配置，否则程序会报错
 
-#### 注意事项
+#### docker使用注意事项
 
 1. **路径映射**
    - 使用绝对路径进行映射
@@ -251,7 +278,7 @@ newgrp docker  # 立即应用组权限，或者重新登录系统
 ---
 
 
-### 4️⃣ **配置文件说明**
+### 配置文件说明
 
 配置文件使用YAML格式，分为 `monitor` 和 `webhook` 两个主要部分。每个配置项都有详细的说明和默认值。
 
@@ -352,7 +379,7 @@ webhook:
 4. Webhook支持所有标准的Webhook接口，可以根据实际需求调整消息格式
 5. [飞书webhook机器人使用说明](https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot)
 
-### 5️⃣ **目录结构**
+### 目录结构
 
 ```
 TaskNya/
@@ -373,7 +400,7 @@ TaskNya/
 
 ---
 
-## ⚠️ 注意事项
+## 注意事项
 
 1. **GPU监控功能**
    - 仅在有NVIDIA显卡的环境下可用
@@ -406,17 +433,15 @@ TaskNya/
 
 ---
 
-## 🔧 开发 & 贡献  
+## 开发 & 贡献  
 
 欢迎贡献代码！请先 fork 项目，然后提交 Pull Request 😃  
 如果你喜欢该项目的话欢迎添加star！ ⭐
 
 ---
 
-## 📄 许可证  
+## 许可证  
 
 MIT License - 你可以自由使用和修改本项目。  
 
 ---
-
-
