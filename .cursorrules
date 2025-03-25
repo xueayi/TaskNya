@@ -1,0 +1,124 @@
+{
+    "@.cursorrules": {
+        "description": "TaskNya - 深度学习训练任务监控工具",
+        "version": "1.0.0",
+        "directory_structure": {
+            "/": {
+                "description": "项目根目录",
+                "files": {
+                    "main.py": "主程序入口，包含核心监控逻辑",
+                    "webui.py": "Web界面启动入口",
+                    "requirements.txt": "Python依赖包列表",
+                    "install_requirements.bat": "Windows环境下安装依赖的脚本",
+                    "start_webui.bat": "Windows环境下启动Web界面的脚本",
+                    "docker-compose.yml": "Docker容器编排配置",
+                    "Dockerfile": "Docker镜像构建配置",
+                    ".dockerignore": "Docker构建时忽略的文件列表",
+                    ".gitignore": "Git版本控制忽略的文件列表",
+                    ".cursorrules": "Cursor IDE配置文件",
+                    "README.md": "项目说明文档",
+                    "LICENSE": "开源许可证"
+                },
+                "directories": {
+                    "app/": {
+                        "description": "Web应用程序目录",
+                        "contents": {
+                            "app.py": "Flask应用主程序",
+                            "static/": "静态资源目录（JS、CSS等）",
+                            "templates/": "HTML模板目录"
+                        }
+                    },
+                    "configs/": {
+                        "description": "配置文件目录",
+                        "contents": {
+                            "default.yaml": "默认配置文件",
+                            "*.yaml": "用户保存的配置文件"
+                        }
+                    },
+                    "logs/": {
+                        "description": "日志文件目录",
+                        "contents": {
+                            "monitor.log": "监控程序日志",
+                            "webui.log": "Web界面日志"
+                        }
+                    },
+                    "docs/": {
+                        "description": "文档目录",
+                        "contents": {
+                            "*.md": "项目相关文档"
+                        }
+                    },
+                    "images/": {
+                        "description": "图片资源目录"
+                    }
+                }
+            }
+        },
+        "features": {
+            "monitor": {
+                "file_check": "检测指定文件是否存在",
+                "log_check": {
+                    "description": "检测日志文件中的完成标记",
+                    "modes": {
+                        "full": "检测整个日志文件",
+                        "incremental": "只检测新增日志内容"
+                    }
+                },
+                "gpu_power": "监控GPU功耗是否低于阈值"
+            },
+            "notification": {
+                "webhook": "支持飞书机器人webhook通知",
+                "customizable": "可自定义通知内容和样式"
+            },
+            "web_interface": {
+                "config_management": "可视化配置管理",
+                "real_time_log": "实时日志显示",
+                "monitor_control": "监控任务启停控制"
+            }
+        }
+    },
+    "python": {
+        "formatter": "black",
+        "formatOnSave": true,
+        "linter": "pylint",
+        "lintOnSave": true
+    },
+    "javascript": {
+        "formatter": "prettier",
+        "formatOnSave": true,
+        "linter": "eslint",
+        "lintOnSave": true
+    },
+    "html": {
+        "formatter": "prettier",
+        "formatOnSave": true
+    },
+    "css": {
+        "formatter": "prettier",
+        "formatOnSave": true
+    },
+    "yaml": {
+        "formatter": "prettier",
+        "formatOnSave": true
+    },
+    "json": {
+        "formatter": "prettier",
+        "formatOnSave": true
+    },
+    "markdown": {
+        "formatter": "prettier",
+        "formatOnSave": true
+    },
+    "exclude": [
+        "**/__pycache__",
+        "**/.git",
+        "**/node_modules",
+        "**/*.pyc",
+        "**/*.pyo",
+        "**/*.pyd",
+        "**/.DS_Store",
+        "**/logs",
+        "**/dist",
+        "**/build"
+    ]
+} 

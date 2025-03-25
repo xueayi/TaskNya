@@ -29,6 +29,9 @@ function getFormData() {
                 // 确保logprint也被转换为整数
                 const num = parseInt(value);
                 config.monitor[field] = isNaN(num) ? null : num;
+            } else if (key === 'monitor.check_log_mode') {
+                // 处理日志检测模式
+                config.monitor[field] = value;
             } else {
                 config.monitor[field] = value;
             }
@@ -358,6 +361,9 @@ function collectFormData() {
             } else if (field.includes('interval') || field.includes('checks') || field === 'logprint') {
                 const num = parseInt(value);
                 value = isNaN(num) ? null : num;
+            } else if (field === 'check_log_mode') {
+                // 保持日志检测模式的字符串值
+                value = input.value;
             }
         } else if (section === 'webhook') {
             if (field.includes('enabled') || (field.startsWith('include_') && !field.endsWith('_title'))) {

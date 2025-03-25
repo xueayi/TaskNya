@@ -31,6 +31,7 @@ DEFAULT_CONFIG = {
         "check_log_enabled": False,
         "check_log_path": "./logs/training.log",
         "check_log_markers": ["Training completed", "训练完成"],
+        "check_log_mode": "full",  # 新增: 日志检测模式 ("full" 或 "incremental")
         
         # GPU功耗检查
         "check_gpu_power_enabled": False,
@@ -83,6 +84,9 @@ class TrainingMonitor:
         self.low_power_count = 0
         self.should_stop = lambda: False  # 默认的停止检查函数
         
+        # 初始化日志文件位置
+        self.last_log_position = 0
+        
     def _load_config(self, config_path):
         """
         加载配置文件，并与默认配置合并
@@ -133,15 +137,35 @@ class TrainingMonitor:
         if self.config['monitor']['check_log_enabled']:
             log_path = self.config['monitor']['check_log_path']
             markers = self.config['monitor']['check_log_markers']
+            log_mode = self.config['monitor'].get('check_log_mode', 'full')  # 默认为全量检测
             
             if os.path.exists(log_path):
                 try:
                     with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
-                        content = f.read()
+                        # 根据日志检测模式选择检测范围
+                        if log_mode == 'incremental':
+                            # 增量检测模式：只检测新增内容
+                            f.seek(0, os.SEEK_END)
+                            file_size = f.tell()
+                            
+                            # 如果文件变大，读取新增内容
+                            if file_size > self.last_log_position:
+                                f.seek(self.last_log_position)
+                                content = f.read()
+                                self.last_log_position = file_size
+                                logger.debug(f"检测日志增量内容: {len(content)} 字节")
+                            else:
+                                # 文件没有变化
+                                return False, "未完成任务"
+                        else:
+                            # 全量检测模式：读取整个文件
+                            content = f.read()
+                        
+                        # 在内容中查找标记
                         for marker in markers:
                             if marker in content:
                                 logger.info(f"在日志中发现完成标记: {marker}")
-                                return True ,"日志检测"
+                                return True, "日志检测"
                 except Exception as e:
                     logger.error(f"读取日志文件失败: {str(e)}")
                             
@@ -160,7 +184,7 @@ class TrainingMonitor:
                     logger.info(f"GPU功耗低于阈值次数: [{self.low_power_count}/{consecutive_checks}]")
                     if self.low_power_count >= consecutive_checks:
                         logger.info(f"GPU功耗已连续{consecutive_checks}次低于阈值{threshold}W，判定任务完成")
-                        return True ,f"GPU功耗检测"
+                        return True, f"GPU功耗检测"
                 else:
                     # 重置计数器
                     self.low_power_count = 0
@@ -361,6 +385,19 @@ class TrainingMonitor:
         check_interval = self.config['monitor']['check_interval']
         logprint = self.config['monitor']['logprint']
         timeout = self.config['monitor']['timeout']
+        
+        # 初始化日志文件位置（如果是增量检测模式）
+        if (self.config['monitor']['check_log_enabled'] and 
+            self.config['monitor'].get('check_log_mode') == 'incremental'):
+            log_path = self.config['monitor']['check_log_path']
+            if os.path.exists(log_path):
+                try:
+                    with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        f.seek(0, os.SEEK_END)
+                        self.last_log_position = f.tell()
+                        logger.info(f"初始化日志文件位置: {self.last_log_position} 字节")
+                except Exception as e:
+                    logger.error(f"初始化日志文件位置失败: {str(e)}")
 
         project_name_title = self.config['webhook']['include_project_name_title']
         start_time_title = self.config['webhook']['include_start_time_title']
@@ -413,6 +450,13 @@ class TrainingMonitor:
             # 定期输出监控状态
             if elapsed_time % logprint == 0:
                 logger.info(f"监控仍在进行中，已等待 {elapsed_time} 秒")
+                # 打印日志检测模式
+                if self.config['monitor']['check_log_enabled']:
+                    log_mode = self.config['monitor'].get('check_log_mode', 'full')
+                    mode_str = "全量检测" if log_mode == 'full' else "增量检测"
+                    logger.info(f"日志检测模式: {mode_str}")
+                    if log_mode == 'incremental':
+                        logger.info(f"当前日志位置: {self.last_log_position} 字节")
 
 def main():
     parser = argparse.ArgumentParser(description="深度学习任务监控和通知系统")

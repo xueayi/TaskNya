@@ -1,8 +1,8 @@
 monitor:
-  check_file_enabled: true
-  check_file_path: /app/monitor_targets/test.txt
+  check_file_enabled: false
+  check_file_path: D:\develop\python\test\file_in.txt
   check_gpu_power_consecutive_checks: 3
-  check_gpu_power_enabled: true
+  check_gpu_power_enabled: false
   check_gpu_power_gpu_ids: all
   check_gpu_power_threshold: 50.0
   check_interval: 5
@@ -12,7 +12,8 @@ monitor:
   - 任务完成
   - 训练完成
   - Epoch [300/300]
-  check_log_path: /app/monitor_targets/test.log
+  check_log_mode: incremental
+  check_log_path: D:\develop\python\test\file_in.log
   logprint: 60
   project_name: 监控任务
   timeout: null
@@ -35,4 +36,4 @@ webhook:
   include_start_time: true
   include_start_time_title: 任务开始
   title: 🎉 监控任务完成通知
-  url: https://open.feishu.cn/open-apis/bot/v2/hook/yoururl
+  url: https://open.feishu.cn/open-apis/bot/v2/hook/dad04f75-770a-4c27-a89b-5ce8bdeb8825

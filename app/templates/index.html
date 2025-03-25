@@ -116,6 +116,17 @@
                         <label class="form-label">完成标记（每行一个）</label>
                         <textarea class="form-control" name="monitor.check_log_markers" rows="4">{{ '\n'.join(config.monitor.check_log_markers) }}</textarea>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">日志检测模式</label>
+                        <select class="form-control" name="monitor.check_log_mode">
+                            <option value="full" {% if config.monitor.check_log_mode == 'full' %}selected{% endif %}>全量检测</option>
+                            <option value="incremental" {% if config.monitor.check_log_mode == 'incremental' %}selected{% endif %}>增量检测</option>
+                        </select>
+                        <div class="form-text text-muted">
+                            全量检测：每次检查整个日志文件<br>
+                            增量检测：只检查新增加的日志内容
+                        </div>
+                    </div>
                 </div>
             </div>
 
