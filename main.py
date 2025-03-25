@@ -131,7 +131,7 @@ class TrainingMonitor:
             file_path = self.config['monitor']['check_file_path']
             if os.path.exists(file_path):
                 logger.info(f"找到指定文件: {file_path}")
-                return True, "目标文件检测"
+                return True, "目标文件检测", file_path
                 
         # 方法2: 检查日志文件中是否包含完成标记
         if self.config['monitor']['check_log_enabled']:
@@ -156,7 +156,7 @@ class TrainingMonitor:
                                 logger.debug(f"检测日志增量内容: {len(content)} 字节")
                             else:
                                 # 文件没有变化
-                                return False, "未完成任务"
+                                return False, "未完成任务", None
                         else:
                             # 全量检测模式：读取整个文件
                             content = f.read()
@@ -165,7 +165,7 @@ class TrainingMonitor:
                         for marker in markers:
                             if marker in content:
                                 logger.info(f"在日志中发现完成标记: {marker}")
-                                return True, "日志检测"
+                                return True, "日志检测", marker
                 except Exception as e:
                     logger.error(f"读取日志文件失败: {str(e)}")
                             
@@ -184,14 +184,14 @@ class TrainingMonitor:
                     logger.info(f"GPU功耗低于阈值次数: [{self.low_power_count}/{consecutive_checks}]")
                     if self.low_power_count >= consecutive_checks:
                         logger.info(f"GPU功耗已连续{consecutive_checks}次低于阈值{threshold}W，判定任务完成")
-                        return True, f"GPU功耗检测"
+                        return True, f"GPU功耗检测", None
                 else:
                     # 重置计数器
                     self.low_power_count = 0
             except (subprocess.SubprocessError, FileNotFoundError):
                 logger.warning("未检测到NVIDIA显卡或nvidia-smi不可用，跳过GPU功耗检查")
                 
-        return False, "未完成任务"
+        return False, "未完成任务", None
     
     def _check_gpu_power_below_threshold(self, threshold, gpu_ids):
         """
@@ -273,11 +273,18 @@ class TrainingMonitor:
             content_items.append(f"**{training_info['end_time_title']}**: {training_info['end_time']}")
         if self.config['webhook']['include_method']:
             content_items.append(f"**{training_info['method_title']}**: {training_info['method']}")
+        # 添加关键词信息（如果存在）
+        if 'keyword' in training_info and training_info['keyword']:
+            content_items.append(f"**{training_info['keyword_title']}**: {training_info['keyword']}")
+        # 添加检测到的文件信息（如果存在）
+        if 'target_file' in training_info and training_info['target_file']:
+            content_items.append(f"**{training_info['target_file_title']}**: {training_info['target_file']}")
         if self.config['webhook']['include_duration']:
             content_items.append(f"**{training_info['duration_title']}**: {training_info['duration']}")
         if self.config['webhook']['include_hostname']:
             content_items.append(f"**{training_info['hostname_title']}**: {training_info['hostname']}")
-        if self.config['webhook']['include_gpu_info']:
+        # 仅当GPU信息存在且需要包含时才添加
+        if self.config['webhook']['include_gpu_info'] and 'gpu_info' in training_info:
             content_items.append(f"**{training_info['gpu_info_title']}**:\n{training_info['gpu_info']}")
         
         # 确保至少有一个内容项
@@ -411,7 +418,7 @@ class TrainingMonitor:
         
         elapsed_time = 0
         while not self.should_stop():  # 检查是否应该停止
-            flag, method = self.is_training_complete()
+            flag, method, detail = self.is_training_complete()
             if flag:
                 end_time = datetime.now()
                 duration = end_time - self.start_time
@@ -423,7 +430,6 @@ class TrainingMonitor:
                     "duration": str(duration).split('.')[0],  # 格式化为 HH:MM:SS
                     "project_name": project_name,
                     "hostname": os.uname().nodename if hasattr(os, 'uname') else os.environ.get('COMPUTERNAME', 'Unknown'),
-                    "gpu_info": self.get_gpu_info(),
                     "method": method,
 
                     "project_name_title": project_name_title,
@@ -434,6 +440,22 @@ class TrainingMonitor:
                     "hostname_title": hostname_title,
                     "gpu_info_title": gpu_info_title,
                 }
+                
+                # 只有使用GPU检测或GPU检测功能已启用时，才添加GPU信息
+                if method == "GPU功耗检测" or self.config['monitor']['check_gpu_power_enabled']:
+                    training_info["gpu_info"] = self.get_gpu_info()
+                
+                # 如果是日志检测且有关键词，则添加关键词信息
+                if method == "日志检测" and detail:
+                    training_info["keyword"] = detail
+                    training_info["keyword_title"] = "触发关键词"
+                    logger.info(f"触发关键词: {detail}")
+                
+                # 如果是文件检测，则添加文件路径信息
+                if method == "目标文件检测" and detail:
+                    training_info["target_file"] = detail
+                    training_info["target_file_title"] = "检测到的文件"
+                    logger.info(f"检测到的文件: {detail}")
                 
                 logger.info(f"任务已完成！总耗时: {training_info['duration']}")
                 self.send_notification(training_info)
