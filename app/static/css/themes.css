@@ -1,0 +1,100 @@
+:root {
+    /* 全局变量 - 亮色主题 (默认) */
+    --primary-color: #3f51b5;
+    --secondary-color: #4caf50;
+    --danger-color: #f44336;
+    --warning-color: #ff9800;
+    --info-color: #2196f3;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    
+    --body-bg: #f8f9fa;
+    --body-color: #212529;
+    
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.125);
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --card-header-bg: #f1f3f5;
+    --card-header-color: #495057;
+    
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --input-color: #212529;
+    --input-focus-border: #80bdff;
+    --input-focus-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    
+    --btn-primary-bg: var(--primary-color);
+    --btn-primary-color: #ffffff;
+    --btn-secondary-bg: var(--secondary-color);
+    --btn-secondary-color: #ffffff;
+    --btn-danger-bg: var(--danger-color);
+    --btn-danger-color: #ffffff;
+    
+    --log-panel-bg: #212529;
+    --log-panel-color: #f8f9fa;
+    
+    --transition-speed: 0.3s;
+}
+
+/* 暗色主题 */
+[data-theme="dark"] {
+    --primary-color: #5c6bc0;
+    --secondary-color: #66bb6a;
+    --danger-color: #e57373;
+    --warning-color: #ffb74d;
+    --info-color: #64b5f6;
+    
+    --body-bg: #121212;
+    --body-color: #e0e0e0;
+    
+    --card-bg: #1e1e1e;
+    --card-border: rgba(255, 255, 255, 0.125);
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --card-header-bg: #2c2c2c;
+    --card-header-color: #e0e0e0;
+    
+    --input-bg: #2c2c2c;
+    --input-border: #444444;
+    --input-color: #e0e0e0;
+    --input-focus-border: #80bdff;
+    --input-focus-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);
+    
+    --log-panel-bg: #000000;
+    --log-panel-color: #e0e0e0;
+}
+
+/* 翠绿主题 */
+[data-theme="green"] {
+    --primary-color: #00796b;
+    --secondary-color: #43a047;
+    --danger-color: #e53935;
+    --warning-color: #ff8f00;
+    --info-color: #0288d1;
+    
+    --body-bg: #e8f5e9;
+    --body-color: #1b5e20;
+    
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 121, 107, 0.2);
+    --card-shadow: 0 4px 6px rgba(0, 121, 107, 0.1);
+    --card-header-bg: #e0f2f1;
+    --card-header-color: #00695c;
+}
+
+/* 深蓝主题 */
+[data-theme="blue"] {
+    --primary-color: #1565c0;
+    --secondary-color: #0d47a1;
+    --danger-color: #c62828;
+    --warning-color: #ef6c00;
+    --info-color: #0097a7;
+    
+    --body-bg: #e3f2fd;
+    --body-color: #0d47a1;
+    
+    --card-bg: #ffffff;
+    --card-border: rgba(13, 71, 161, 0.2);
+    --card-shadow: 0 4px 6px rgba(13, 71, 161, 0.1);
+    --card-header-bg: #bbdefb;
+    --card-header-color: #1565c0;
+} 
