@@ -46,7 +46,7 @@
 - [x] **Web界面**：提供直观的Web配置界面，可实时修改和应用配置。
 - [X] **docker**：支持docker部署。
 - [X] **Windows环境适配**：可以在Windows中运行。
-- [ ] 适配钉钉
+- [ ] 钉钉适配中
 - [ ] examples不同场景范例
 - [ ] Pypl
 - [ ] 邮箱推送支持
@@ -149,7 +149,7 @@ docker pull xueayis/tasknya:latest
 ```
 
 2. **运行容器**
-在要部署的目录下创建docker-compose.yml，创建文件夹logs和monitor_targets，并填入以下内容
+在命令行输入以下内容直接运行容器，其中`-v`参数左侧是要检测的目标路径，需要确保目标文件夹存在
 ```bash
 docker run -d \
   --name tasknya \
@@ -271,7 +271,7 @@ docker-compose down
    docker exec tasknya cat /app/logs/monitor.log
    ```
 
-4. **运行异常**
+4. **运行异常处理**
 ```bash
 sudo groupadd docker  # 确保 docker 组存在
 sudo usermod -aG docker $USER  # 把当前用户加入 docker 组
@@ -292,7 +292,7 @@ monitor:
   project_name: "深度学习训练"     # 项目名称，将显示在通知消息中
   check_interval: 5              # 检查间隔(秒)，每隔多少秒检查一次任务状态
   logprint: 60                  # 日志打印间隔（秒），每隔多少秒在日志中打印一次状态
-  timeout: None                 # 监控超时时间(秒)，设为null则无限等待，到期后自动停止监控
+  timeout: None                 # 监控超时时间(秒)，设为None则无限等待，到期后自动停止监控
 ```
 
 2. **文件监控配置**
