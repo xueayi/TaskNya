@@ -7,6 +7,7 @@ import sys
 import threading
 import queue
 import logging
+import time
 from datetime import datetime
 from importlib.util import spec_from_file_location, module_from_spec
 
@@ -166,38 +167,93 @@ def index():
 @sock.route('/ws')
 def handle_websocket(ws):
     """处理WebSocket连接"""
+    if not ws.connected:
+        logger.warning("WebSocket连接未成功建立")
+        return
+
     clients.add(ws)
+    last_ping = datetime.now()
+    connection_active = True
+
     try:
         # 发送初始状态（只在连接建立时发送一次）
         status = 'running' if (monitor_thread and monitor_thread.is_alive()) else 'stopped'
-        ws.send(json.dumps({
-            'type': 'status',
-            'data': {'status': status}
-        }))
-        
-        while True:
-            # 从日志队列获取消息并发送
+        try:
+            ws.send(json.dumps({
+                'type': 'status',
+                'data': {'status': status}
+            }))
+        except Exception as e:
+            logger.error(f"发送初始状态失败: {str(e)}")
+            connection_active = False
+            return
+
+        while connection_active and ws.connected:
             try:
-                while True:
-                    log_message = log_queue.get_nowait()
-                    if isinstance(log_message, dict) and log_message.get('type') == 'status':
-                        # 状态变更消息
-                        ws.send(json.dumps(log_message))
-                    else:
-                        # 普通日志消息
-                        ws.send(json.dumps({
-                            'type': 'log',
-                            'message': log_message
-                        }))
-            except queue.Empty:
-                pass
-            
-            # 等待一小段时间
-            ws.sleep(0.1)
-    except Exception:
-        pass
+                # 心跳检测
+                now = datetime.now()
+                if (now - last_ping).total_seconds() > 30:
+                    try:
+                        ws.send(json.dumps({'type': 'ping'}))
+                        last_ping = now
+                    except Exception as e:
+                        logger.warning(f"WebSocket心跳检测失败: {str(e)}")
+                        connection_active = False
+                        break
+
+                # 从日志队列获取消息并发送
+                messages_processed = 0
+                max_messages_per_batch = 10
+
+                while messages_processed < max_messages_per_batch:
+                    try:
+                        log_message = log_queue.get_nowait()
+                        if not ws.connected:
+                            logger.warning("WebSocket连接已断开，停止发送消息")
+                            connection_active = False
+                            break
+
+                        try:
+                            if isinstance(log_message, dict) and log_message.get('type') == 'status':
+                                # 状态变更消息
+                                ws.send(json.dumps(log_message))
+                            else:
+                                # 普通日志消息
+                                ws.send(json.dumps({
+                                    'type': 'log',
+                                    'message': log_message
+                                }))
+                            messages_processed += 1
+                        except Exception as e:
+                            logger.error(f"发送消息失败: {str(e)}")
+                            connection_active = False
+                            break
+
+                    except queue.Empty:
+                        break
+
+                # 短暂休眠避免CPU占用过高
+                time.sleep(0.1)
+
+            except Exception as e:
+                logger.error(f"消息处理循环出错: {str(e)}")
+                if not ws.connected:
+                    connection_active = False
+                    break
+
+    except Exception as e:
+        logger.error(f"WebSocket连接处理出错: {str(e)}")
     finally:
-        clients.remove(ws)
+        try:
+            clients.remove(ws)
+        except KeyError:
+            pass
+        if ws.connected:
+            try:
+                ws.close()
+            except Exception:
+                pass
+        logger.info("WebSocket连接已清理完成")
 
 def broadcast_status_change(status):
     """广播状态变更消息"""
@@ -408,4 +464,4 @@ def apply_config():
         }), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000) 
+    app.run(debug=True, port=5000)

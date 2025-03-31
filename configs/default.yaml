@@ -1,12 +1,12 @@
 monitor:
-  check_file_enabled: false
+  check_file_enabled: true
   check_file_path: /app/monitor_targets/test.txt
   check_gpu_power_consecutive_checks: 3
   check_gpu_power_enabled: false
   check_gpu_power_gpu_ids: all
   check_gpu_power_threshold: 50.0
   check_interval: 5
-  check_log_enabled: true
+  check_log_enabled: false
   check_log_markers:
   - Training completed
   - 任务完成
