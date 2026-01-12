@@ -1,467 +1,223 @@
-from flask import Flask, render_template, request, jsonify, send_file
-from flask_sock import Sock
-import yaml
+# -*- coding: utf-8 -*-
+"""
+TaskNya Flask Web 应用
+
+提供 Web 界面和 API 接口。
+"""
+
 import os
-import json
 import sys
 import threading
-import queue
 import logging
-import time
-from datetime import datetime
 from importlib.util import spec_from_file_location, module_from_spec
 
-app = Flask(__name__)
-sock = Sock(app)
+from flask import Flask, render_template
+from flask_sock import Sock
 
-# 配置文件路径
-CONFIG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'configs')
+# 确保能导入项目模块（必须在导入本地模块之前）
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+# 现在可以安全导入本地模块
+from core.config import ConfigManager
+
+# 路径配置
+CONFIG_DIR = os.path.join(PROJECT_ROOT, 'configs')
 DEFAULT_CONFIG_PATH = os.path.join(CONFIG_DIR, 'default.yaml')
-MAIN_SCRIPT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'main.py')
-LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+MAIN_SCRIPT_PATH = os.path.join(PROJECT_ROOT, 'main.py')
+LOG_DIR = os.path.join(PROJECT_ROOT, 'logs')
 
-# 确保必要的目录存在
+# 确保必要目录存在
 os.makedirs(CONFIG_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
 
-# 全局变量
-monitor_thread = None
-monitor_stop_event = threading.Event()
-log_queue = queue.Queue()
-clients = set()
 
-class WebSocketHandler(logging.Handler):
-    def emit(self, record):
-        try:
-            log_entry = self.format(record)
-            log_queue.put(log_entry)
-        except Exception:
-            self.handleError(record)
-
-# 配置日志处理
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-# WebSocket处理器
-ws_handler = WebSocketHandler()
-ws_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-logger.addHandler(ws_handler)
-
-# 文件处理器
-file_handler = logging.FileHandler(os.path.join(LOG_DIR, 'webui.log'), encoding='utf-8')
-file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-logger.addHandler(file_handler)
-
-# 控制台处理器
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-logger.addHandler(console_handler)
-
-def load_config(config_path=DEFAULT_CONFIG_PATH):
-    """加载配置文件"""
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            return yaml.safe_load(f)
-    except Exception as e:
-        return None
-
-def save_config(config_data, filename):
-    """保存配置到文件"""
-    file_path = os.path.join(CONFIG_DIR, filename)
-    try:
-        # 保存到指定文件
-        with open(file_path, 'w', encoding='utf-8') as f:
-            yaml.dump(config_data, f, allow_unicode=True)
-            
-        # 同时更新主配置文件
-        with open(DEFAULT_CONFIG_PATH, 'w', encoding='utf-8') as f:
-            yaml.dump(config_data, f, allow_unicode=True)
-            
-        logger.info(f"配置已保存到: {filename}")
-        return True
-    except Exception as e:
-        logger.error(f"保存配置失败: {str(e)}")
-        return False
-
-def validate_config(config_data):
-    """验证配置数据的类型"""
-    try:
-        monitor = config_data.get('monitor', {})
-        
-        # 验证并转换数值类型
-        if 'check_interval' in monitor:
-            monitor['check_interval'] = int(monitor['check_interval'])
-        if 'logprint' in monitor:
-            monitor['logprint'] = int(monitor['logprint'])
-        if 'timeout' in monitor and monitor['timeout'] is not None:
-            monitor['timeout'] = int(monitor['timeout'])
-        if 'check_gpu_power_threshold' in monitor:
-            monitor['check_gpu_power_threshold'] = float(monitor['check_gpu_power_threshold'])
-        if 'check_gpu_power_consecutive_checks' in monitor:
-            monitor['check_gpu_power_consecutive_checks'] = int(monitor['check_gpu_power_consecutive_checks'])
-            
-        return True
-    except (ValueError, TypeError) as e:
-        return False
-
-def broadcast_message(message_type, data):
-    """广播消息给所有WebSocket客户端"""
-    message = json.dumps({
-        'type': message_type,
-        'data': data
-    })
-    dead_clients = set()
+class MonitorState:
+    """
+    监控状态管理器
     
-    for client in clients:
-        try:
-            client.send(message)
-        except Exception:
-            dead_clients.add(client)
+    管理监控线程的生命周期和状态。
+    """
     
-    # 移除断开的客户端
-    clients.difference_update(dead_clients)
-
-def run_monitor():
-    """运行监控程序"""
-    try:
-        # 动态导入main.py
-        spec = spec_from_file_location("monitor_main", MAIN_SCRIPT_PATH)
-        module = module_from_spec(spec)
-        sys.modules["monitor_main"] = module
-        spec.loader.exec_module(module)
+    def __init__(self, ws_manager):
+        """
+        初始化监控状态管理器
         
-        # 加载当前配置
-        config = load_config()
-        if not config:
-            logger.error("无法加载配置文件")
-            return
+        Args:
+            ws_manager: WebSocket 管理器实例
+        """
+        self.thread = None
+        self.stop_event = threading.Event()
+        self.ws_manager = ws_manager
+        self._lock = threading.Lock()
+    
+    def is_running(self) -> bool:
+        """检查监控是否正在运行"""
+        with self._lock:
+            return self.thread is not None and self.thread.is_alive()
+    
+    def start(self):
+        """启动监控"""
+        with self._lock:
+            if self.thread and self.thread.is_alive():
+                return False
+            
+            self.stop_event.clear()
+            self.thread = threading.Thread(target=self._run_monitor)
+            self.thread.daemon = True
+            self.thread.start()
+            
+            # 广播状态变更
+            self.ws_manager.broadcast_status('running')
+            return True
+    
+    def stop(self, timeout: float = 5.0) -> bool:
+        """
+        停止监控
         
-        # 创建监控器实例
-        monitor = module.TrainingMonitor(config_path=DEFAULT_CONFIG_PATH)
+        Args:
+            timeout: 等待超时时间
+            
+        Returns:
+            是否成功停止
+        """
+        with self._lock:
+            if not self.thread or not self.thread.is_alive():
+                return True
+            
+            self.stop_event.set()
         
-        # 设置停止事件检查
-        def check_stop():
-            return monitor_stop_event.is_set()
+        self.thread.join(timeout=timeout)
         
-        # 注入停止检查函数
-        monitor.should_stop = check_stop
+        with self._lock:
+            if self.thread.is_alive():
+                return False
+            
+            self.thread = None
+            self.ws_manager.broadcast_status('stopped')
+            return True
+    
+    def _run_monitor(self):
+        """运行监控程序"""
+        logger = logging.getLogger(__name__)
         
-        # 开始监控
-        logger.info("开始监控任务...")
-        monitor.start_monitoring()
-        
-    except Exception as e:
-        logger.error(f"监控程序出错: {str(e)}")
-    finally:
-        monitor_stop_event.clear()
-        broadcast_message('status', {'status': 'stopped'})
-
-@app.route('/')
-def index():
-    """主页路由"""
-    config = load_config()
-    # 检查监控状态
-    status = 'running' if (monitor_thread and monitor_thread.is_alive()) else 'stopped'
-    return render_template('index.html', config=config, initial_status=status)
-
-@sock.route('/ws')
-def handle_websocket(ws):
-    """处理WebSocket连接"""
-    if not ws.connected:
-        logger.warning("WebSocket连接未成功建立")
-        return
-
-    clients.add(ws)
-    last_ping = datetime.now()
-    connection_active = True
-
-    try:
-        # 发送初始状态（只在连接建立时发送一次）
-        status = 'running' if (monitor_thread and monitor_thread.is_alive()) else 'stopped'
         try:
-            ws.send(json.dumps({
-                'type': 'status',
-                'data': {'status': status}
-            }))
+            # 动态导入 main.py
+            spec = spec_from_file_location("monitor_main", MAIN_SCRIPT_PATH)
+            module = module_from_spec(spec)
+            sys.modules["monitor_main"] = module
+            spec.loader.exec_module(module)
+            
+            # 创建监控器实例
+            monitor = module.TrainingMonitor(config_path=DEFAULT_CONFIG_PATH)
+            
+            # 注入停止检查函数
+            monitor.should_stop = lambda: self.stop_event.is_set()
+            
+            logger.info("开始监控任务...")
+            monitor.start_monitoring()
+            
         except Exception as e:
-            logger.error(f"发送初始状态失败: {str(e)}")
-            connection_active = False
-            return
+            logger.error(f"监控程序出错: {str(e)}")
+        finally:
+            self.stop_event.clear()
+            self.ws_manager.broadcast_status('stopped')
 
-        while connection_active and ws.connected:
-            try:
-                # 心跳检测
-                now = datetime.now()
-                if (now - last_ping).total_seconds() > 30:
-                    try:
-                        ws.send(json.dumps({'type': 'ping'}))
-                        last_ping = now
-                    except Exception as e:
-                        logger.warning(f"WebSocket心跳检测失败: {str(e)}")
-                        connection_active = False
-                        break
 
-                # 从日志队列获取消息并发送
-                messages_processed = 0
-                max_messages_per_batch = 10
-
-                while messages_processed < max_messages_per_batch:
-                    try:
-                        log_message = log_queue.get_nowait()
-                        if not ws.connected:
-                            logger.warning("WebSocket连接已断开，停止发送消息")
-                            connection_active = False
-                            break
-
-                        try:
-                            if isinstance(log_message, dict) and log_message.get('type') == 'status':
-                                # 状态变更消息
-                                ws.send(json.dumps(log_message))
-                            else:
-                                # 普通日志消息
-                                ws.send(json.dumps({
-                                    'type': 'log',
-                                    'message': log_message
-                                }))
-                            messages_processed += 1
-                        except Exception as e:
-                            logger.error(f"发送消息失败: {str(e)}")
-                            connection_active = False
-                            break
-
-                    except queue.Empty:
-                        break
-
-                # 短暂休眠避免CPU占用过高
-                time.sleep(0.1)
-
-            except Exception as e:
-                logger.error(f"消息处理循环出错: {str(e)}")
-                if not ws.connected:
-                    connection_active = False
-                    break
-
-    except Exception as e:
-        logger.error(f"WebSocket连接处理出错: {str(e)}")
-    finally:
-        try:
-            clients.remove(ws)
-        except KeyError:
-            pass
-        if ws.connected:
-            try:
-                ws.close()
-            except Exception:
-                pass
-        logger.info("WebSocket连接已清理完成")
-
-def broadcast_status_change(status):
-    """广播状态变更消息"""
-    message = {
-        'type': 'status',
-        'data': {'status': status}
-    }
-    log_queue.put(message)
-
-@app.route('/api/monitor/start', methods=['POST'])
-def start_monitor():
-    """启动监控"""
-    global monitor_thread
+def create_app():
+    """
+    创建并配置 Flask 应用
     
-    if monitor_thread and monitor_thread.is_alive():
-        return jsonify({
-            'status': 'error',
-            'message': '监控程序已在运行'
-        }), 400
+    Returns:
+        配置好的 Flask 应用实例
+    """
+    # 在函数内部导入，避免循环导入
+    from app.routes import config_bp, monitor_bp
+    from app.routes.monitor_routes import init_monitor_state
+    from app.websocket import WebSocketManager
     
-    try:
-        # 确保配置文件存在
-        if not os.path.exists(DEFAULT_CONFIG_PATH):
-            return jsonify({
-                'status': 'error',
-                'message': '配置文件不存在'
-            }), 400
-            
-        monitor_stop_event.clear()
-        monitor_thread = threading.Thread(target=run_monitor)
-        monitor_thread.daemon = True
-        monitor_thread.start()
-        
-        # 广播状态变更
-        broadcast_status_change('running')
-        logger.info("监控程序已启动")
-        
-        return jsonify({
-            'status': 'success',
-            'message': '监控程序已启动'
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
-
-@app.route('/api/monitor/stop', methods=['POST'])
-def stop_monitor():
-    """停止监控"""
-    global monitor_thread
+    app = Flask(__name__)
+    sock = Sock(app)
     
-    if not monitor_thread or not monitor_thread.is_alive():
-        return jsonify({
-            'status': 'error',
-            'message': '监控程序未在运行'
-        }), 400
+    # 创建 WebSocket 管理器
+    ws_manager = WebSocketManager()
     
-    try:
-        monitor_stop_event.set()
-        monitor_thread.join(timeout=5)
-        
-        if monitor_thread.is_alive():
-            return jsonify({
-                'status': 'error',
-                'message': '停止监控程序失败'
-            }), 500
-        
-        monitor_thread = None
-        # 广播状态变更
-        broadcast_status_change('stopped')
-        logger.info("监控程序已停止")
-        
-        return jsonify({
-            'status': 'success',
-            'message': '监控程序已停止'
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+    # 配置日志
+    _setup_logging(ws_manager)
+    
+    # 创建监控状态管理器
+    monitor_state = MonitorState(ws_manager)
+    
+    # 初始化路由模块的监控状态
+    init_monitor_state(monitor_state)
+    
+    # 注册蓝图
+    app.register_blueprint(config_bp)
+    app.register_blueprint(monitor_bp)
+    
+    # 配置管理器
+    config_manager = ConfigManager(config_dir=CONFIG_DIR)
+    
+    # 主页路由
+    @app.route('/')
+    def index():
+        """主页路由"""
+        config = config_manager.load_config()
+        status = 'running' if monitor_state.is_running() else 'stopped'
+        return render_template('index.html', config=config, initial_status=status)
+    
+    # WebSocket 路由
+    @sock.route('/ws')
+    def handle_websocket(ws):
+        """处理 WebSocket 连接"""
+        ws_manager.handle_connection(
+            ws, 
+            lambda: 'running' if monitor_state.is_running() else 'stopped'
+        )
+    
+    # 存储到 app 上下文
+    app.ws_manager = ws_manager
+    app.monitor_state = monitor_state
+    app.config_manager = config_manager
+    
+    return app
 
-@app.route('/api/config', methods=['GET'])
-def get_config():
-    """获取配置API"""
-    config = load_config()
-    return jsonify(config)
 
-@app.route('/api/config/save', methods=['POST'])
-def save_config_api():
-    """保存配置API"""
-    try:
-        data = request.json
-        config_name = data.get('name', '').strip()
-        config_data = data.get('config', {})
-        
-        if not config_name:
-            return jsonify({
-                'status': 'error',
-                'message': '配置名称不能为空'
-            }), 400
-            
-        # 验证配置数据类型
-        if not validate_config(config_data):
-            return jsonify({
-                'status': 'error',
-                'message': '配置数据类型无效'
-            }), 400
-            
-        # 清理文件名，移除不安全字符
-        safe_name = "".join(c for c in config_name if c.isalnum() or c in (' ', '-', '_')).strip()
-        if not safe_name:
-            return jsonify({
-                'status': 'error',
-                'message': '配置名称包含无效字符'
-            }), 400
-            
-        # 添加时间戳后缀以避免重名
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{safe_name}_{timestamp}.yaml"
-        
-        if save_config(config_data, filename):
-            # 同时更新主配置文件
-            with open(DEFAULT_CONFIG_PATH, 'w', encoding='utf-8') as f:
-                yaml.dump(config_data, f, allow_unicode=True)
-            
-            return jsonify({
-                'status': 'success',
-                'message': '配置已保存',
-                'filename': filename
-            })
-        else:
-            return jsonify({
-                'status': 'error',
-                'message': '保存配置失败'
-            }), 500
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+def _setup_logging(ws_manager):
+    """
+    配置日志系统
+    
+    Args:
+        ws_manager: WebSocket 管理器
+    """
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    
+    # 清除已有处理器
+    logger.handlers.clear()
+    
+    log_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    
+    # WebSocket 处理器
+    ws_handler = ws_manager.get_log_handler()
+    logger.addHandler(ws_handler)
+    
+    # 文件处理器
+    log_file = os.path.join(LOG_DIR, 'webui.log')
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setFormatter(log_format)
+    logger.addHandler(file_handler)
+    
+    # 控制台处理器
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(log_format)
+    logger.addHandler(console_handler)
 
-@app.route('/api/configs', methods=['GET'])
-def list_configs():
-    """列出所有保存的配置"""
-    configs = []
-    for filename in os.listdir(CONFIG_DIR):
-        if filename.endswith('.yaml'):
-            configs.append(filename)
-    return jsonify(configs)
 
-@app.route('/api/config/load/<filename>', methods=['GET'])
-def load_saved_config(filename):
-    """加载保存的配置"""
-    try:
-        config_path = os.path.join(CONFIG_DIR, filename)
-        config = load_config(config_path)
-        if config:
-            # 加载后同时更新主配置文件
-            with open(DEFAULT_CONFIG_PATH, 'w', encoding='utf-8') as f:
-                yaml.dump(config, f, allow_unicode=True)
-            logger.info(f"已加载配置: {filename}")
-            return jsonify({
-                'status': 'success',
-                'config': config
-            })
-        else:
-            return jsonify({
-                'status': 'error',
-                'message': '无法加载配置文件'
-            }), 404
-    except Exception as e:
-        logger.error(f"加载配置失败: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
+# 创建应用实例
+app = create_app()
 
-@app.route('/api/config/apply', methods=['POST'])
-def apply_config():
-    """应用当前配置"""
-    try:
-        data = request.json
-        config_data = data.get('config', {})
-        
-        # 验证配置数据类型
-        if not validate_config(config_data):
-            return jsonify({
-                'status': 'error',
-                'message': '配置数据类型无效'
-            }), 400
-            
-        # 更新主配置文件
-        with open(DEFAULT_CONFIG_PATH, 'w', encoding='utf-8') as f:
-            yaml.dump(config_data, f, allow_unicode=True)
-            
-        logger.info("已应用新配置")
-        return jsonify({
-            'status': 'success',
-            'message': '配置已应用'
-        })
-    except Exception as e:
-        logger.error(f"应用配置失败: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

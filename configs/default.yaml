@@ -1,39 +1,37 @@
 monitor:
   check_file_enabled: true
-  check_file_path: /app/monitor_targets/test.txt
+  check_file_path: /tmp/test_file.txt
   check_gpu_power_consecutive_checks: 3
   check_gpu_power_enabled: false
   check_gpu_power_gpu_ids: all
   check_gpu_power_threshold: 50.0
-  check_interval: 5
-  check_log_enabled: false
+  check_interval: 1
+  check_log_enabled: true
   check_log_markers:
-  - Training completed
-  - 任务完成
-  - 训练完成
-  - Epoch [300/300]
-  check_log_mode: incremental
-  check_log_path: /app/monitor_targets/test.log
-  logprint: 60
-  project_name: 监控任务
-  timeout: null
+  - 完成
+  - done
+  check_log_mode: full
+  check_log_path: /tmp/test.log
+  logprint: 5
+  project_name: 单元测试任务
+  timeout: 30
 webhook:
   color: green
   enabled: true
-  footer: 此消息由TaskNya发送
+  footer: 测试消息
   include_duration: true
-  include_duration_title: 总耗时测试
+  include_duration_title: 耗时
   include_end_time: true
-  include_end_time_title: 任务结束时间
-  include_gpu_info: true
-  include_gpu_info_title: GPU信息
+  include_end_time_title: 结束
+  include_gpu_info: false
+  include_gpu_info_title: GPU
   include_hostname: true
-  include_hostname_title: 主机名
+  include_hostname_title: 主机
   include_method: true
-  include_method_title: 系统判断依据
+  include_method_title: 方式
   include_project_name: true
-  include_project_name_title: 监控任务
+  include_project_name_title: 项目
   include_start_time: true
-  include_start_time_title: 任务开始
-  title: 🎉 监控任务完成通知
-  url: https://open.feishu.cn/open-apis/bot/v2/hook/yoururl
+  include_start_time_title: 开始
+  title: 测试通知
+  url: https://test.webhook.url/hook
