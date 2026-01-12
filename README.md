@@ -298,8 +298,8 @@ monitor:
 2. **文件监控配置**
 ```yaml
 monitor:
-  # 文件检查配置
-  check_file_enabled: true                        # 是否启用文件检查
+  # 单文件感知配置
+  check_file_enabled: true                        # 是否启用单文件感知
   check_file_path: "./output/model_final.pth"     # 要检查的文件路径，支持相对路径和绝对路径
                                                  # 当此文件出现时，视为任务完成
 ```

@@ -13,7 +13,7 @@ DEFAULT_CONFIG = {
         "timeout": None,
         "logprint": 60,
         
-        # 文件检查
+        # 单文件感知
         "check_file_enabled": True,
         "check_file_path": "./output/model_final.pth",
         

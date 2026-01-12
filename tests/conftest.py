@@ -69,10 +69,10 @@ def test_config():
     """测试用配置字典"""
     return {
         "monitor": {
-            "project_name": "单元测试任务",
-            "check_interval": 1,
-            "timeout": 30,
-            "logprint": 5,
+            "project_name": "监控任务",
+            "check_interval": 60,
+            "timeout": 0,
+            "logprint": 60,
             "check_file_enabled": True,
             "check_file_path": "/tmp/test_file.txt",
             "check_log_enabled": True,

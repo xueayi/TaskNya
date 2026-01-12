@@ -1,12 +1,12 @@
 monitor:
   check_file_enabled: true
-  check_file_path: /tmp/test_file.txt
+  check_file_path: D:\User\Downloads\b站抽奖动态_恋爱0公里_20260111\b站抽奖动态\text.txt
   check_gpu_power_consecutive_checks: 3
   check_gpu_power_enabled: false
   check_gpu_power_gpu_ids: all
-  check_gpu_power_threshold: 50.0
+  check_gpu_power_threshold: 20
   check_interval: 1
-  check_log_enabled: true
+  check_log_enabled: false
   check_log_markers:
   - 完成
   - done
@@ -14,7 +14,7 @@ monitor:
   check_log_path: /tmp/test.log
   logprint: 5
   project_name: 单元测试任务
-  timeout: 30
+  timeout: 0
 webhook:
   color: green
   enabled: true
@@ -34,4 +34,4 @@ webhook:
   include_start_time: true
   include_start_time_title: 开始
   title: 测试通知
-  url: https://test.webhook.url/hook
+  url: https://open.feishu.cn/open-apis/bot/v2/hook/dad04f75-770a-4c27-a89b-5ce8bdeb8825
