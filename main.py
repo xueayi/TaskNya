@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core.config import ConfigManager, DEFAULT_CONFIG
 from core.monitor import MonitorManager
-from core.notifier import WebhookNotifier, MessageBuilder
+from core.notifier import WebhookNotifier, GenericWebhookNotifier, MessageBuilder
 from core.utils import get_gpu_info, setup_logger
 from core.utils.logger import get_default_log_path
 
@@ -67,6 +67,7 @@ class TrainingMonitor:
         # 初始化组件
         self._monitor_manager = MonitorManager(self.config)
         self._notifier = WebhookNotifier(self.config.get('webhook', {}))
+        self._generic_notifier = GenericWebhookNotifier(self.config.get('generic_webhook', {}))
         self._message_builder = MessageBuilder(self.config.get('webhook', {}))
         
         # 状态
@@ -124,7 +125,19 @@ class TrainingMonitor:
         Returns:
             是否发送成功
         """
-        return self._notifier.send(training_info)
+        success = True
+        
+        # 发送飞书通知
+        if self._notifier.enabled:
+            if not self._notifier.send(training_info):
+                success = False
+        
+        # 发送通用 Webhook 通知
+        if self._generic_notifier.enabled:
+            if not self._generic_notifier.send(training_info):
+                success = False
+        
+        return success
     
     def get_gpu_info(self) -> str:
         """
@@ -165,6 +178,12 @@ class TrainingMonitor:
                     gpu_info=self.get_gpu_info() if self._should_include_gpu_info(method) else None
                 )
                 
+                # 如果是目录监控触发，尝试获取详细报告数据
+                if method == "目录变化检测":
+                    dir_monitor = self._monitor_manager.get_monitor("目录监控")
+                    if dir_monitor and hasattr(dir_monitor, 'get_report_data'):
+                        training_info['report'] = dir_monitor.get_report_data()
+                
                 logger.info(f"任务已完成！总耗时: {training_info['duration']}")
                 self.send_notification(training_info)
                 break
@@ -193,7 +212,9 @@ class TrainingMonitor:
             是否包含GPU信息
         """
         return (method == "GPU功耗检测" or 
-                self.config['monitor'].get('check_gpu_power_enabled', False))
+                self.config['monitor'].get('check_gpu_power_enabled', False) or
+                self.config['webhook'].get('include_gpu_info', True) or
+                self.config['generic_webhook'].get('enabled', False))
     
     def _log_monitor_status(self):
         """输出当前监控状态到日志"""

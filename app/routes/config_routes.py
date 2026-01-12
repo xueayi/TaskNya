@@ -84,6 +84,10 @@ def save_config():
                 'message': '配置数据类型无效'
             }), 400
         
+        # 合并现有配置，防止前端提交不完整数据导致丢失
+        current_config = _config_manager.load_config()
+        config_data = _config_manager.merge_config(config_data, current_config)
+        
         # 清理文件名
         safe_name = "".join(c for c in config_name if c.isalnum() or c in (' ', '-', '_')).strip()
         if not safe_name:
@@ -179,6 +183,10 @@ def apply_config():
                 'message': '配置数据类型无效'
             }), 400
         
+        # 合并现有配置，防止前端提交不完整数据导致丢失
+        current_config = _config_manager.load_config()
+        config_data = _config_manager.merge_config(config_data, current_config)
+        
         # 保存到默认配置
         if _config_manager.save_config(config_data, 'default.yaml'):
             logger.info("已应用新配置")
@@ -194,6 +202,57 @@ def apply_config():
             
     except Exception as e:
         logger.error(f"应用配置失败: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@config_bp.route('/config/delete/<filename>', methods=['DELETE'])
+def delete_config(filename):
+    """
+    删除指定配置文件
+    
+    Args:
+        filename: 配置文件名
+        
+    Returns:
+        JSON: 删除结果
+    """
+    try:
+        # 安全检查：不允许删除默认配置
+        if filename == 'default.yaml':
+            return jsonify({
+                'status': 'error',
+                'message': '不能删除默认配置文件'
+            }), 400
+        
+        # 清理文件名，防止路径遍历攻击
+        safe_filename = os.path.basename(filename)
+        if not safe_filename.endswith('.yaml') and not safe_filename.endswith('.yml'):
+            return jsonify({
+                'status': 'error',
+                'message': '无效的配置文件名'
+            }), 400
+        
+        config_path = os.path.join(CONFIG_DIR, safe_filename)
+        
+        if not os.path.exists(config_path):
+            return jsonify({
+                'status': 'error',
+                'message': '配置文件不存在'
+            }), 404
+        
+        os.remove(config_path)
+        logger.info(f"已删除配置文件: {safe_filename}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': '配置已删除'
+        })
+        
+    except Exception as e:
+        logger.error(f"删除配置失败: {str(e)}")
         return jsonify({
             'status': 'error',
             'message': str(e)

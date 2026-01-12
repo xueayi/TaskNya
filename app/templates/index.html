@@ -51,16 +51,15 @@
                                 <i class="bi bi-stop-fill"></i> 停止检测
                             </button>
                             <div class="d-flex justify-content-between mt-2">
-                                <button class="btn btn-primary flex-grow-1 me-2" id="applyConfigBtn"
-                                    onclick="applyCurrentConfig()">
-                                    <i class="bi bi-check-circle"></i> 应用配置
+                                <button class="btn btn-success flex-grow-1 me-2" onclick="saveConfig()">
+                                    <i class="bi bi-save"></i> 保存配置
                                 </button>
                                 <button class="btn btn-secondary flex-grow-1" onclick="loadConfigList()">
                                     <i class="bi bi-folder2-open"></i> 加载配置
                                 </button>
                             </div>
-                            <button class="btn btn-success" onclick="saveConfig()">
-                                <i class="bi bi-save"></i> 保存当前配置
+                            <button class="btn btn-primary" id="applyConfigBtn" onclick="applyCurrentConfig()">
+                                <i class="bi bi-check-circle"></i> 应用配置
                             </button>
                         </div>
                     </div>
@@ -281,6 +280,122 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- 多文件感知（目录监控）配置 -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" id="directory_check_switch"
+                                            name="monitor.check_directory_enabled" {% if
+                                            config.monitor.check_directory_enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="directory_check_switch">
+                                            <i class="bi bi-folder2-open"></i> 多文件感知（目录监控）
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">监控目录路径</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-folder"></i></span>
+                                            <input type="text" class="form-control" name="monitor.check_directory_path"
+                                                value="{{ config.monitor.check_directory_path }}"
+                                                placeholder="例如: /data/models 或 D:\outputs">
+                                        </div>
+                                        <div class="form-text">
+                                            <strong>路径填写说明：</strong><br>
+                                            · Windows: <code>D:\outputs\models</code> 或 <code>.\relative\path</code><br>
+                                            · Linux/Mac: <code>/data/models</code> 或 <code>./relative/path</code><br>
+                                            · Docker容器: <code>/app/monitor_targets</code>（需挂载卷）
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input" id="detect_added_switch"
+                                                    name="monitor.check_directory_detect_added" {% if
+                                                    config.monitor.check_directory_detect_added %}checked{% endif %}>
+                                                <label class="form-check-label" for="detect_added_switch">📥
+                                                    检测文件新增</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input"
+                                                    id="detect_removed_switch"
+                                                    name="monitor.check_directory_detect_removed" {% if
+                                                    config.monitor.check_directory_detect_removed %}checked{% endif %}>
+                                                <label class="form-check-label" for="detect_removed_switch">🗑️
+                                                    检测文件删除</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input"
+                                                    id="detect_modified_switch"
+                                                    name="monitor.check_directory_detect_modified" {% if
+                                                    config.monitor.check_directory_detect_modified %}checked{% endif %}>
+                                                <label class="form-check-label" for="detect_modified_switch">✏️
+                                                    检测文件修改</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch pt-2">
+                                                    <input type="checkbox" class="form-check-input"
+                                                        id="include_folders_switch"
+                                                        name="monitor.check_directory_include_folders" {% if
+                                                        config.monitor.check_directory_include_folders %}checked{% endif
+                                                        %}>
+                                                    <label class="form-check-label" for="include_folders_switch">
+                                                        检测文件夹变化
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">二次确认延迟（秒）</label>
+                                                <input type="number" class="form-control"
+                                                    name="monitor.check_directory_recheck_delay"
+                                                    value="{{ config.monitor.check_directory_recheck_delay }}" min="0">
+                                                <div class="form-text">检测到变化后等待N秒再次确认</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">报告保存路径</label>
+                                                <input type="text" class="form-control"
+                                                    name="monitor.check_directory_report_path"
+                                                    value="{{ config.monitor.check_directory_report_path or '' }}"
+                                                    placeholder="留空则保存到监控目录">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">排除关键词（每行一个）</label>
+                                        <textarea class="form-control" name="monitor.check_directory_exclude_keywords"
+                                            rows="2"
+                                            placeholder="例如: __pycache__, .git, .tmp">{{ '\n'.join(config.monitor.check_directory_exclude_keywords) if config.monitor.check_directory_exclude_keywords else '' }}</textarea>
+                                        <div class="form-text">包含这些关键词的路径将被忽略</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">操作建议配置</label>
+                                        <textarea class="form-control" id="action_keywords_input"
+                                            name="monitor.check_directory_action_keywords_text" rows="3"
+                                            placeholder="格式: 建议内容: 关键词1, 关键词2"></textarea>
+                                        <div class="form-text">
+                                            每行一组，格式为 <code>建议: 关键词1, 关键词2</code><br>
+                                            例如: <code>备份: important, backup</code> (当文件名包含 important 或 backup 时建议备份)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- 通知设置选项卡 -->
@@ -444,9 +559,201 @@
                                                     name="webhook.include_gpu_info_title"
                                                     value="{{ config.webhook.include_gpu_info_title }}"
                                                     placeholder="标题">
-                                                <div class="form-text">如不支持GPU功耗检查，则该项会自动隐藏</div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 通用 Webhook 配置 -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" id="generic_webhook_switch"
+                                            name="generic_webhook.enabled" {% if config.generic_webhook.enabled
+                                            %}checked{% endif %}>
+                                        <label class="form-check-label" for="generic_webhook_switch">
+                                            <i class="bi bi-link-45deg"></i> 通用 Webhook
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Webhook URL</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-link"></i></span>
+                                                    <input type="text" class="form-control" name="generic_webhook.url"
+                                                        value="{{ config.generic_webhook.url }}"
+                                                        placeholder="https://...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">HTTP 方法</label>
+                                                <select class="form-select" name="generic_webhook.method">
+                                                    <option value="POST" {% if config.generic_webhook.method=='POST'
+                                                        %}selected{% endif %}>POST</option>
+                                                    <option value="PUT" {% if config.generic_webhook.method=='PUT'
+                                                        %}selected{% endif %}>PUT</option>
+                                                    <option value="GET" {% if config.generic_webhook.method=='GET'
+                                                        %}selected{% endif %}>GET</option>
+                                                    <option value="DELETE" {% if config.generic_webhook.method=='DELETE'
+                                                        %}selected{% endif %}>DELETE</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">重试次数</label>
+                                                <select class="form-select" name="generic_webhook.retry_count">
+                                                    <option value="0" {% if config.generic_webhook.retry_count==0
+                                                        %}selected{% endif %}>不重试</option>
+                                                    <option value="1" {% if config.generic_webhook.retry_count==1
+                                                        %}selected{% endif %}>1 次</option>
+                                                    <option value="2" {% if config.generic_webhook.retry_count==2
+                                                        %}selected{% endif %}>2 次</option>
+                                                    <option value="3" {% if config.generic_webhook.retry_count==3
+                                                        %}selected{% endif %}>3 次</option>
+                                                    <option value="5" {% if config.generic_webhook.retry_count==5
+                                                        %}selected{% endif %}>5 次</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- AstrBot 简易模式 -->
+                                    <div class="card mb-3">
+                                        <div class="card-header py-2">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input" id="astrbot_mode_switch"
+                                                    name="generic_webhook.astrbot_mode" {% if
+                                                    config.generic_webhook.astrbot_mode %}checked{% endif %}
+                                                    onchange="toggleAstrBotFields()">
+                                                <label class="form-check-label" for="astrbot_mode_switch">
+                                                    <i class="bi bi-lightning"></i> AstrBot 简易模式
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="card-body" id="astrbot_mode_section">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">UMO 参数</label>
+                                                        <input type="text" class="form-control astrbot-field"
+                                                            name="generic_webhook.astrbot_umo"
+                                                            value="{{ config.generic_webhook.astrbot_umo }}"
+                                                            placeholder="例如: 机器人名:GroupMessage:1067617112">
+                                                        <div class="form-text">格式: 平台名:消息类型:目标ID</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">通知表头</label>
+                                                        <input type="text" class="form-control astrbot-field"
+                                                            name="generic_webhook.astrbot_header"
+                                                            value="{{ config.generic_webhook.astrbot_header or '文件变动' }}"
+                                                            placeholder="例如: 文件变动">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">通知内容</label>
+                                                <textarea class="form-control astrbot-field"
+                                                    name="generic_webhook.astrbot_content" rows="4"
+                                                    placeholder="主要通知内容，支持变量">{{ config.generic_webhook.astrbot_content or '项目 ${project_name} 已完成\n耗时: ${duration}\n触发方式: ${method}' }}</textarea>
+                                                <div class="form-text">支持变量替换，见下方说明</div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">其他内容（可选）</label>
+                                                        <textarea class="form-control astrbot-field"
+                                                            name="generic_webhook.astrbot_extra" rows="2"
+                                                            placeholder="额外的补充信息">{{ config.generic_webhook.astrbot_extra or '' }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-check form-switch mt-4">
+                                                        <input type="checkbox" class="form-check-input astrbot-field"
+                                                            id="astrbot_quote_switch"
+                                                            name="generic_webhook.astrbot_include_quote" {% if
+                                                            config.generic_webhook.astrbot_include_quote %}checked{%
+                                                            endif %}>
+                                                        <label class="form-check-label" for="astrbot_quote_switch">
+                                                            <i class="bi bi-chat-quote"></i> 追加二次元语录
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-info mb-0">
+                                                <strong>消息格式预览:</strong>
+                                                <pre class="mb-0 small">📢 [ ${表头} ]
+----------------------------
+${通知内容}
+----------------------------
+${其他内容}
+
+"${二次元语录}"</pre>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 自定义模式 -->
+                                    <div class="mb-3" id="custom_body_section">
+                                        <label class="form-label">请求头 (JSON)（Astrbot模式也需要填写）</label>
+                                        <textarea class="form-control" name="generic_webhook.headers" rows="2"
+                                            placeholder='{"Content-Type": "application/json"}'>{{ config.generic_webhook.headers | tojson if config.generic_webhook.headers else '{"Content-Type": "application/json"}' }}</textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">内置模板</label>
+                                        <select class="form-select" name="generic_webhook.builtin_template">
+                                            <option value="" {% if not config.generic_webhook.builtin_template
+                                                %}selected{% endif %}>自定义 Body</option>
+                                            <option value="astrbot" {% if
+                                                config.generic_webhook.builtin_template=='astrbot' %}selected{% endif
+                                                %}>AstrBot 格式</option>
+                                            <option value="text" {% if config.generic_webhook.builtin_template=='text'
+                                                %}selected{% endif %}>简单文本</option>
+                                            <option value="json" {% if config.generic_webhook.builtin_template=='json'
+                                                %}selected{% endif %}>通用 JSON</option>
+                                            <option value="discord" {% if
+                                                config.generic_webhook.builtin_template=='discord' %}selected{% endif
+                                                %}>Discord 格式</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">自定义 Body (JSON)</label>
+                                        <textarea class="form-control" name="generic_webhook.body" rows="4"
+                                            placeholder='{"content": "项目 ${project_name} 已完成，耗时 ${duration}"}'>{{ config.generic_webhook.body }}</textarea>
+                                        <div class="form-text">
+                                            <strong>可用变量说明:</strong><br>
+                                            <code>${project_name}</code> - 项目名称<br>
+                                            <code>${start_time}</code> - 开始时间 (格式: YYYY-MM-DD HH:MM:SS)<br>
+                                            <code>${end_time}</code> - 结束时间<br>
+                                            <code>${duration}</code> - 总耗时 (格式: H:MM:SS)<br>
+                                            <code>${method}</code> - 触发方式 (如: 目标文件检测, GPU功耗检测)<br>
+                                            <code>${hostname}</code> - 主机名<br>
+                                            <code>${gpu_info}</code> - GPU 信息<br>
+                                            <code>${detail}</code> - 触发详情 (多文件感知时为报告摘要)<br>
+                                            <code>${report_summary}</code> - 目录报告统计摘要<br>
+                                            <code>${report_change_list}</code> - 增加及删除的文件列表<br>
+                                            <code>${report_actions}</code> - 建议操作汇总<br>
+                                            <code>${anime_quote}</code> - 二次元语录 (需开启)
+                                        </div>
+                                    </div>
+
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" id="anime_quote_switch"
+                                            name="generic_webhook.anime_quote_enabled" {% if
+                                            config.generic_webhook.anime_quote_enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="anime_quote_switch">
+                                            <i class="bi bi-chat-quote"></i> 追加二次元语录
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -454,111 +761,161 @@
                     </div>
                 </form>
             </div>
+
+            <footer class="text-center text-muted mb-4">
+                <p>TaskNya - 通用任务监控工具 v0.2.0</p>
+                <p>
+                    <a href="https://github.com/xueayi/TaskNya/" target="_blank" class="text-decoration-none">
+                        <i class="bi bi-github"></i> GitHub 项目页
+                    </a>
+                    <span style="margin: 0 10px;">|</span>
+                    <a href="https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot" target="_blank"
+                        class="text-decoration-none">
+                        <i class="bi bi-book"></i> 飞书机器人配置文档
+                    </a>
+                </p>
+            </footer>
         </div>
 
-        <footer class="text-center text-muted mb-4">
-            <p>TaskNya - 通用任务监控工具 v0.2.0</p>
-            <p>
-                <a href="https://github.com/xueayi/TaskNya/" target="_blank" class="text-decoration-none">
-                    <i class="bi bi-github"></i> GitHub 项目页
-                </a>
-                <span style="margin: 0 10px;">|</span>
-                <a href="https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot" target="_blank"
-                    class="text-decoration-none">
-                    <i class="bi bi-book"></i> 飞书机器人配置文档
-                </a>
-            </p>
-        </footer>
-    </div>
-
-    <!-- 保存配置模态框 -->
-    <div class="modal fade" id="saveConfigModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">保存配置</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">配置名称</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-tag"></i></span>
-                            <input type="text" class="form-control" id="configName" placeholder="请输入配置名称">
+        <!-- 保存配置模态框 -->
+        <div class="modal fade" id="saveConfigModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">保存配置</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">配置名称</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                                <input type="text" class="form-control" id="configName" placeholder="请输入配置名称">
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" onclick="saveConfigWithName()">保存</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 配置列表模态框 -->
-    <div class="modal fade" id="configListModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">已保存的配置</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="list-group" id="configList"></ul>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" onclick="saveConfigWithName()">保存</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- JavaScript -->
-    <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        <!-- 配置列表模态框 -->
+        <div class="modal fade" id="configListModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">已保存的配置</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="list-group" id="configList"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <script>
-        // 更新状态徽章
-        function updateStatusBadge(status) {
-            const badge = document.getElementById('statusBadge');
-            if (status === 'running') {
-                badge.className = 'badge bg-success me-3';
-                badge.innerHTML = '<i class="bi bi-circle-fill me-1"></i> 监控中';
-            } else if (status === 'stopped') {
-                badge.className = 'badge bg-secondary me-3';
-                badge.innerHTML = '<i class="bi bi-circle-fill me-1"></i> 已停止';
-            }
-        }
+        <!-- JavaScript -->
+        <script>
+            const INITIAL_ACTION_KEYWORDS = {{ config.monitor.check_directory_action_keywords | tojson }};
 
-        // 重写updateMonitorStatus函数
-        function updateMonitorStatus(status) {
-            const startBtn = document.getElementById('startBtn');
-            const stopBtn = document.getElementById('stopBtn');
-
-            // 获取当前状态
-            const currentStatus = startBtn.disabled ? 'running' : 'stopped';
-
-            // 只有状态发生变化时才更新
-            if (status !== currentStatus) {
+            // 初始化操作建议文本框
+            document.addEventListener('DOMContentLoaded', function () {
+                const textarea = document.getElementById('action_keywords_input');
+                if (textarea && INITIAL_ACTION_KEYWORDS) {
+                    const lines = [];
+                    for (const [action, keywords] of Object.entries(INITIAL_ACTION_KEYWORDS)) {
+                        const keywordStr = Array.isArray(keywords) ? keywords.join(', ') : keywords;
+                        lines.push(`${action}: ${keywordStr}`);
+                    }
+                    textarea.value = lines.join('\n');
+                }
+            });
+        </script>
+        <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+        <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        <script>
+            // 更新状态徽章
+            function updateStatusBadge(status) {
+                const badge = document.getElementById('statusBadge');
                 if (status === 'running') {
-                    startBtn.disabled = true;
-                    stopBtn.disabled = false;
-                    appendLog('监控程序已启动');
-                    updateStatusBadge('running');
+                    badge.className = 'badge bg-success me-3';
+                    badge.innerHTML = '<i class="bi bi-circle-fill me-1"></i> 监控中';
                 } else if (status === 'stopped') {
-                    startBtn.disabled = false;
-                    stopBtn.disabled = true;
-                    appendLog('监控程序已停止');
-                    updateStatusBadge('stopped');
+                    badge.className = 'badge bg-secondary me-3';
+                    badge.innerHTML = '<i class="bi bi-circle-fill me-1"></i> 已停止';
                 }
             }
-        }
 
-        // 页面加载完成后更新初始状态
-        document.addEventListener('DOMContentLoaded', function () {
-            const initialStatus = '{{ initial_status }}';
-            updateStatusBadge(initialStatus);
-        });
-    </script>
+            // 重写updateMonitorStatus函数
+            function updateMonitorStatus(status) {
+                const startBtn = document.getElementById('startBtn');
+                const stopBtn = document.getElementById('stopBtn');
+
+                // 获取当前状态
+                const currentStatus = startBtn.disabled ? 'running' : 'stopped';
+
+                // 只有状态发生变化时才更新
+                if (status !== currentStatus) {
+                    if (status === 'running') {
+                        startBtn.disabled = true;
+                        stopBtn.disabled = false;
+                        appendLog('监控程序已启动');
+                        updateStatusBadge('running');
+                    } else if (status === 'stopped') {
+                        startBtn.disabled = false;
+                        stopBtn.disabled = true;
+                        appendLog('监控程序已停止');
+                        updateStatusBadge('stopped');
+                    }
+                }
+            }
+
+            // AstrBot 简易模式字段禁用逻辑
+            function toggleAstrBotFields() {
+                const astrBotSwitch = document.getElementById('astrbot_mode_switch');
+                const fields = document.querySelectorAll('.astrbot-field');
+                const section = document.getElementById('astrbot_mode_section');
+
+                if (astrBotSwitch.checked) {
+                    section.style.opacity = '1';
+                    fields.forEach(field => {
+                        field.disabled = false;
+                    });
+                } else {
+                    section.style.opacity = '0.5';
+                    fields.forEach(field => {
+                        field.disabled = true;
+                    });
+                }
+            }
+
+            // 页面加载完成后更新初始状态
+            document.addEventListener('DOMContentLoaded', function () {
+                const initialStatus = '{{ initial_status }}';
+                updateStatusBadge(initialStatus);
+
+                // 初始化 AstrBot 字段状态
+                toggleAstrBotFields();
+
+                // 监听模态框关闭事件，确保移除 backdrop
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('hidden.bs.modal', function () {
+                        // 移除可能残留的 backdrop
+                        document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                            backdrop.remove();
+                        });
+                        // 恢复 body 样式
+                        document.body.classList.remove('modal-open');
+                        document.body.style.overflow = '';
+                        document.body.style.paddingRight = '';
+                    });
+                });
+            });
+        </script>
 </body>
 
 </html>

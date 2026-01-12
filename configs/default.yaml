@@ -1,23 +1,56 @@
+generic_webhook:
+  anime_quote_enabled: false
+  astrbot_content: "${project_name} - \n${start_time} - \n${end_time} - \n${duration}\
+    \ - \n${method} - \n${hostname} - \n${gpu_info} - \n${detail} - \n${report_summary}\
+    \ - \n${report_change_list} - \n${report_actions} - "
+  astrbot_extra: ''
+  astrbot_header: 文件变动
+  astrbot_include_quote: true
+  astrbot_mode: true
+  astrbot_umo: 机器人:GroupMessage:1xxxxxx
+  body: ''
+  builtin_template: astrbot
+  enabled: true
+  headers:
+    Authorization: Bearer xxxxxxxx
+    Content-Type: application/json
+  method: POST
+  retry_count: 2
+  timeout: 10
+  url: http://xxxx.xxx.xxxx:10010/send
 monitor:
-  check_file_enabled: true
-  check_file_path: D:\User\Downloads\b站抽奖动态_恋爱0公里_20260111\b站抽奖动态\text.txt
+  check_directory_action_keywords: {}
+  check_directory_detect_added: true
+  check_directory_detect_modified: false
+  check_directory_detect_removed: true
+  check_directory_enabled: true
+  check_directory_exclude_keywords: []
+  check_directory_include_folders: false
+  check_directory_path: D:\User\Downloads\
+  check_directory_recheck_delay: 20
+  check_directory_report_path: ''
+  check_file_detect_deletion: false
+  check_file_enabled: false
+  check_file_path: /tmp/test_file.txt
+  check_file_recheck_delay: 0
   check_gpu_power_consecutive_checks: 3
   check_gpu_power_enabled: false
   check_gpu_power_gpu_ids: all
-  check_gpu_power_threshold: 20
-  check_interval: 1
+  check_gpu_power_threshold: 50.0
+  check_gpu_power_trigger_mode: below
+  check_interval: 300
   check_log_enabled: false
   check_log_markers:
   - 完成
   - done
   check_log_mode: full
   check_log_path: /tmp/test.log
-  logprint: 5
-  project_name: 单元测试任务
-  timeout: 0
+  logprint: 60
+  project_name: 监控任务
+  timeout: null
 webhook:
   color: green
-  enabled: true
+  enabled: false
   footer: 测试消息
   include_duration: true
   include_duration_title: 耗时
@@ -34,4 +67,4 @@ webhook:
   include_start_time: true
   include_start_time_title: 开始
   title: 测试通知
-  url: https://open.feishu.cn/open-apis/bot/v2/hook/dad04f75-770a-4c27-a89b-5ce8bdeb8825
+  url: https://test.webhook.url/hook

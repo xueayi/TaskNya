@@ -94,22 +94,64 @@ async function loadConfigList() {
     try {
         const response = await fetch('/api/configs');
         const configs = await response.json();
-        
+
         const configList = document.getElementById('configList');
         configList.innerHTML = '';
-        
+
         configs.forEach(filename => {
             const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.textContent = filename;
-            li.onclick = () => loadConfig(filename);
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+            // 配置名称
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = filename;
+            nameSpan.style.cursor = 'pointer';
+            nameSpan.onclick = () => loadConfig(filename);
+            li.appendChild(nameSpan);
+
+            // 删除按钮 (不显示默认配置的删除按钮)
+            if (filename !== 'default.yaml') {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-sm btn-outline-danger';
+                deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteConfig(filename);
+                };
+                li.appendChild(deleteBtn);
+            }
+
             configList.appendChild(li);
         });
-        
+
         const modal = new bootstrap.Modal(document.getElementById('configListModal'));
         modal.show();
     } catch (error) {
         alert('加载配置列表失败：' + error.message);
+    }
+}
+
+// 删除配置
+async function deleteConfig(filename) {
+    if (!confirm(`确定要删除配置 "${filename}" 吗？`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/config/delete/${filename}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            appendLog(`配置 ${filename} 已删除`);
+            // 刷新配置列表
+            loadConfigList();
+        } else {
+            alert('删除失败：' + result.message);
+        }
+    } catch (error) {
+        alert('删除失败：' + error.message);
     }
 }
 
@@ -118,10 +160,10 @@ async function loadConfig(filename) {
     try {
         const response = await fetch(`/api/config/load/${filename}`);
         const result = await response.json();
-        
+
         if (result.status === 'success') {
             const config = result.config;
-            
+
             // 更新表单值
             Object.entries(config.monitor).forEach(([key, value]) => {
                 const input = document.querySelector(`[name="monitor.${key}"]`);
@@ -135,7 +177,7 @@ async function loadConfig(filename) {
                     }
                 }
             });
-            
+
             Object.entries(config.webhook).forEach(([key, value]) => {
                 const input = document.querySelector(`[name="webhook.${key}"]`);
                 if (input) {
@@ -149,11 +191,11 @@ async function loadConfig(filename) {
                     }
                 }
             });
-            
+
             // 关闭模态框
             const modal = bootstrap.Modal.getInstance(document.getElementById('configListModal'));
             modal.hide();
-            
+
             appendLog('配置已加载');
         } else {
             appendLog('加载配置失败：' + result.message);
@@ -169,23 +211,23 @@ let ws = null;
 // 初始化WebSocket连接
 function initWebSocket() {
     ws = new WebSocket(`ws://${window.location.host}/ws`);
-    
-    ws.onmessage = function(event) {
+
+    ws.onmessage = function (event) {
         const data = JSON.parse(event.data);
-        
+
         if (data.type === 'log') {
             appendLog(data.message);
         } else if (data.type === 'status') {
             updateMonitorStatus(data.data.status);
         }
     };
-    
-    ws.onclose = function() {
+
+    ws.onclose = function () {
         console.log('WebSocket连接已关闭');
         setTimeout(initWebSocket, 3000); // 3秒后尝试重连
     };
-    
-    ws.onerror = function(err) {
+
+    ws.onerror = function (err) {
         console.error('WebSocket错误:', err);
     };
 }
@@ -209,10 +251,10 @@ function clearLogs() {
 function updateMonitorStatus(status) {
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
-    
+
     // 获取当前状态
     const currentStatus = startBtn.disabled ? 'running' : 'stopped';
-    
+
     // 只有状态发生变化时才更新
     if (status !== currentStatus) {
         if (status === 'running') {
@@ -236,7 +278,7 @@ async function startMonitor() {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const result = await response.json();
         if (result.status === 'success') {
             updateMonitorStatus('running');
@@ -253,18 +295,18 @@ async function stopMonitor() {
     try {
         const stopBtn = document.getElementById('stopBtn');
         const startBtn = document.getElementById('startBtn');
-        
+
         // 显示停止中状态
         stopBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> 停止中...';
         appendLog('正在停止监控程序...');
-        
+
         const response = await fetch('/api/monitor/stop', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         const result = await response.json();
         if (result.status === 'success') {
             updateMonitorStatus('stopped');
@@ -282,7 +324,7 @@ async function stopMonitor() {
 }
 
 // 页面加载完成后初始化WebSocket
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initWebSocket();
 });
 
@@ -292,10 +334,10 @@ function applyCurrentConfig() {
     // 禁用按钮并改变文本
     applyBtn.disabled = true;
     applyBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> 应用中...';
-    
+
     // 获取所有配置输入
     const config = collectFormData();
-    
+
     // 发送到后端
     fetch('/api/config/apply', {
         method: 'POST',
@@ -304,61 +346,82 @@ function applyCurrentConfig() {
         },
         body: JSON.stringify({ config: config })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            appendLog('配置已应用');
-            // 显示成功图标
-            applyBtn.innerHTML = '<i class="bi bi-check-lg"></i> 已应用';
-            setTimeout(() => {
-                applyBtn.innerHTML = '应用当前配置';
-                applyBtn.disabled = false;
-            }, 2000);
-        } else {
-            appendLog('应用配置失败: ' + data.message);
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                appendLog('配置已应用');
+                // 显示成功图标
+                applyBtn.innerHTML = '<i class="bi bi-check-lg"></i> 已应用';
+                setTimeout(() => {
+                    applyBtn.innerHTML = '应用当前配置';
+                    applyBtn.disabled = false;
+                }, 2000);
+            } else {
+                appendLog('应用配置失败: ' + data.message);
+                // 显示错误图标
+                applyBtn.innerHTML = '<i class="bi bi-x-lg"></i> 应用失败';
+                setTimeout(() => {
+                    applyBtn.innerHTML = '应用当前配置';
+                    applyBtn.disabled = false;
+                }, 2000);
+            }
+        })
+        .catch(error => {
+            appendLog('应用配置失败: ' + error);
             // 显示错误图标
             applyBtn.innerHTML = '<i class="bi bi-x-lg"></i> 应用失败';
             setTimeout(() => {
                 applyBtn.innerHTML = '应用当前配置';
                 applyBtn.disabled = false;
             }, 2000);
-        }
-    })
-    .catch(error => {
-        appendLog('应用配置失败: ' + error);
-        // 显示错误图标
-        applyBtn.innerHTML = '<i class="bi bi-x-lg"></i> 应用失败';
-        setTimeout(() => {
-            applyBtn.innerHTML = '应用当前配置';
-            applyBtn.disabled = false;
-        }, 2000);
-    });
+        });
 }
 
 function collectFormData() {
     const config = {
         monitor: {},
-        webhook: {}
+        webhook: {},
+        generic_webhook: {}
     };
-    
+
     // 收集所有input元素的值
     document.querySelectorAll('input, select, textarea').forEach(input => {
         if (!input.name) return;
-        
+
         const [section, field] = input.name.split('.');
         let value = input.type === 'checkbox' ? input.checked : input.value;
-        
+
         // 根据字段名和类型进行数据转换
         if (section === 'monitor') {
-            if (field === 'check_log_markers' && input.tagName.toLowerCase() === 'textarea') {
+            if ((field === 'check_log_markers' || field === 'check_directory_exclude_keywords') && input.tagName.toLowerCase() === 'textarea') {
                 value = value.split('\n').filter(line => line.trim());
+            } else if (field === 'check_directory_action_keywords_text') {
+                // 解析操作建议文本到字典
+                const actionKeywords = {};
+                const lines = value.split('\n');
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    // 支持中英文冒号
+                    const parts = line.split(/[:：]/);
+                    if (parts.length >= 2) {
+                        const action = parts[0].trim();
+                        const keywordsStr = parts.slice(1).join(':').trim(); // 重新组合后面可能包含冒号的部分
+                        if (action && keywordsStr) {
+                            // 支持中英文逗号
+                            const keywords = keywordsStr.split(/[,，]/).map(k => k.trim()).filter(k => k);
+                            actionKeywords[action] = keywords;
+                        }
+                    }
+                });
+                config.monitor['check_directory_action_keywords'] = actionKeywords;
+                return; // 不设置 _text 字段
             } else if (field === 'timeout') {
                 value = value === 'None' ? null : parseInt(value);
             } else if (field.includes('enabled')) {
                 value = input.checked;
             } else if (field.includes('threshold')) {
                 value = parseFloat(value);
-            } else if (field.includes('interval') || field.includes('checks') || field === 'logprint') {
+            } else if (field.includes('interval') || field.includes('checks') || field === 'logprint' || field.includes('delay')) {
                 const num = parseInt(value);
                 value = isNaN(num) ? null : num;
             } else if (field === 'check_log_mode') {
@@ -371,6 +434,23 @@ function collectFormData() {
                 value = input.checked;
             }
             // 其他webhook字段（包括_title结尾的）保持原始值
+        } else if (section === 'generic_webhook') {
+            // 处理 generic_webhook 配置段
+            if (field === 'enabled' || field === 'astrbot_mode' || field === 'anime_quote_enabled' || field === 'astrbot_include_quote') {
+                value = input.checked;
+            } else if (field === 'retry_count' || field === 'timeout') {
+                value = parseInt(value) || 0;
+            } else if (field === 'headers') {
+                // 尝试解析 JSON
+                try {
+                    value = JSON.parse(value || '{}');
+                } catch (e) {
+                    value = { "Content-Type": "application/json" };
+                }
+            } else if (field === 'builtin_template') {
+                // 空字符串转换为 null
+                value = value || null;
+            }
         }
 
         // 设置值到配置对象
@@ -378,8 +458,10 @@ function collectFormData() {
             config.monitor[field] = value;
         } else if (section === 'webhook') {
             config.webhook[field] = value;
+        } else if (section === 'generic_webhook') {
+            config.generic_webhook[field] = value;
         }
     });
-    
+
     return config;
 } 

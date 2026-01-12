@@ -16,12 +16,9 @@ from core.monitor import FileMonitor, LogMonitor, GpuMonitor, MonitorManager
 class TestFileMonitor:
     """文件监控器测试"""
     
-    def test_file_monitor_file_exists(self, temp_dir):
-        """测试文件存在时的检测"""
-        # 创建测试文件
+    def test_file_monitor_file_create_detection(self, temp_dir):
+        """测试文件创建检测（新行为：初始不存在 -> 创建）"""
         test_file = os.path.join(temp_dir, 'model.pth')
-        with open(test_file, 'w') as f:
-            f.write('test')
         
         config = {
             'check_file_enabled': True,
@@ -29,22 +26,39 @@ class TestFileMonitor:
         }
         monitor = FileMonitor(config)
         
+        # 第一次调用：初始化
         triggered, method, detail = monitor.check()
+        assert triggered is False
+        assert method == "初始化中"
         
+        # 第二次调用：文件仍不存在
+        triggered, method, detail = monitor.check()
+        assert triggered is False
+        
+        # 创建文件
+        with open(test_file, 'w') as f:
+            f.write('test')
+        
+        # 第三次调用：检测到文件创建
+        triggered, method, detail = monitor.check()
         assert triggered is True
         assert method == "目标文件检测"
         assert detail == test_file
     
     def test_file_monitor_file_not_exists(self, temp_dir):
-        """测试文件不存在时的检测"""
+        """测试文件始终不存在时的检测"""
         config = {
             'check_file_enabled': True,
             'check_file_path': os.path.join(temp_dir, 'not_exist.pth')
         }
         monitor = FileMonitor(config)
         
-        triggered, method, detail = monitor.check()
+        # 初始化
+        triggered, _, _ = monitor.check()
+        assert triggered is False
         
+        # 后续检查
+        triggered, method, detail = monitor.check()
         assert triggered is False
     
     def test_file_monitor_disabled(self):
@@ -58,6 +72,34 @@ class TestFileMonitor:
         assert monitor.enabled is False
         triggered, _, _ = monitor.check()
         assert triggered is False
+    
+    def test_file_monitor_deletion_detection(self, temp_dir):
+        """测试文件删除检测"""
+        test_file = os.path.join(temp_dir, 'existing.pth')
+        
+        # 先创建文件
+        with open(test_file, 'w') as f:
+            f.write('test')
+        
+        config = {
+            'check_file_enabled': True,
+            'check_file_path': test_file,
+            'check_file_detect_deletion': True
+        }
+        monitor = FileMonitor(config)
+        
+        # 初始化
+        triggered, _, _ = monitor.check()
+        assert triggered is False
+        assert monitor._initial_exists is True
+        
+        # 删除文件
+        os.remove(test_file)
+        
+        # 检测到删除
+        triggered, method, detail = monitor.check()
+        assert triggered is True
+        assert method == "文件删除检测"
 
 
 class TestLogMonitor:
@@ -230,17 +272,24 @@ class TestMonitorManager:
     
     def test_monitor_manager_any_trigger(self, temp_dir, test_config):
         """测试监控管理器"或"逻辑"""
-        # 创建触发文件
         test_file = os.path.join(temp_dir, 'trigger.txt')
-        with open(test_file, 'w') as f:
-            f.write('done')
         
         test_config['monitor']['check_file_path'] = test_file
         test_config['monitor']['check_log_enabled'] = False
         test_config['monitor']['check_gpu_power_enabled'] = False
+        test_config['monitor']['check_directory_enabled'] = False
         
         manager = MonitorManager(test_config)
         
+        # 第一次调用：初始化
+        triggered, _, _ = manager.check()
+        assert triggered is False
+        
+        # 创建触发文件
+        with open(test_file, 'w') as f:
+            f.write('done')
+        
+        # 再次检查
         triggered, method, _ = manager.check()
         
         assert triggered is True

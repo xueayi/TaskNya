@@ -133,6 +133,10 @@ class ConfigManager:
         if 'webhook' in user_config and user_config['webhook']:
             result['webhook'].update(user_config['webhook'])
         
+        # 合并 generic_webhook 配置
+        if 'generic_webhook' in user_config and user_config['generic_webhook']:
+            result['generic_webhook'].update(user_config['generic_webhook'])
+        
         return result
     
     @staticmethod
@@ -151,20 +155,22 @@ class ConfigManager:
             
             # 验证并转换数值类型
             if 'check_interval' in monitor:
-                int(monitor['check_interval'])
+                monitor['check_interval'] = int(monitor['check_interval'])
             if 'logprint' in monitor:
-                int(monitor['logprint'])
-            if 'timeout' in monitor and monitor['timeout'] is not None:
-                int(monitor['timeout'])
+                monitor['logprint'] = int(monitor['logprint'])
+            if 'timeout' in monitor and monitor['timeout'] is not None and monitor['timeout'] != 'None':
+                monitor['timeout'] = int(monitor['timeout'])
             if 'check_gpu_power_threshold' in monitor:
-                float(monitor['check_gpu_power_threshold'])
+                monitor['check_gpu_power_threshold'] = float(monitor['check_gpu_power_threshold'])
             if 'check_gpu_power_consecutive_checks' in monitor:
-                int(monitor['check_gpu_power_consecutive_checks'])
+                monitor['check_gpu_power_consecutive_checks'] = int(monitor['check_gpu_power_consecutive_checks'])
+            if 'check_directory_recheck_delay' in monitor:
+                monitor['check_directory_recheck_delay'] = int(monitor['check_directory_recheck_delay'])
             
             # 验证 webhook 配置
             webhook = config.get('webhook', {})
             if 'enabled' in webhook:
-                bool(webhook['enabled'])
+                webhook['enabled'] = bool(webhook['enabled'])
                 
             return True
             
