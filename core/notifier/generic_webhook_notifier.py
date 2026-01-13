@@ -49,41 +49,6 @@ class GenericWebhookNotifier(BaseNotifier):
     # HTTP 方法白名单
     ALLOWED_METHODS = ["POST", "PUT", "GET", "DELETE", "PATCH"]
     
-    # 内置模板
-    BUILTIN_TEMPLATES = {
-        "astrbot": {
-            "description": "AstrBot Webhook 格式",
-            "body": {
-                "content": "[ 任务完成通知 ]\n----------------------------\n项目: ${project_name}\n开始: ${start_time}\n结束: ${end_time}\n耗时: ${duration}\n触发: ${method}\n----------------------------\n${anime_quote}\n\n[ 来自 TaskNya 推送 ]",
-                "umo": "${astrbot_umo}",
-                "message_type": "text"
-            }
-        },
-        "text": {
-            "description": "简单文本格式",
-            "body": {
-                "content": "[TaskNya] 项目 ${project_name} 已完成，耗时 ${duration}，触发方式: ${method}"
-            }
-        },
-        "json": {
-            "description": "通用 JSON 格式",
-            "body": {
-                "event": "task_complete",
-                "project": "${project_name}",
-                "start_time": "${start_time}",
-                "end_time": "${end_time}",
-                "duration": "${duration}",
-                "method": "${method}",
-                "hostname": "${hostname}"
-            }
-        },
-        "discord": {
-            "description": "Discord Webhook 格式",
-            "body": {
-                "content": "**🎉 任务完成通知**\n\n**项目**: ${project_name}\n**耗时**: ${duration}\n**触发**: ${method}\n\n> ${anime_quote}"
-            }
-        }
-    }
     
     def __init__(self, config: Dict[str, Any]):
         """
@@ -96,31 +61,18 @@ class GenericWebhookNotifier(BaseNotifier):
                 - method: HTTP 方法 (POST/PUT/GET/DELETE)
                 - headers: 请求头字典
                 - body: 自定义 Body (字符串或字典)
-                - builtin_template: 内置模板名
                 - retry_count: 重试次数 (0-5)
                 - timeout: 请求超时（秒）
                 - anime_quote_enabled: 是否启用二次元语录
-                - astrbot_mode: AstrBot 简易模式开关
-                - astrbot_umo: AstrBot UMO 参数
-                - astrbot_content: AstrBot 简易模式内容
         """
         self._enabled = config.get('enabled', False)
         self.url = config.get('url', '')
         self.method = config.get('method', 'POST').upper()
         self.headers = config.get('headers', {'Content-Type': 'application/json'})
         self.body_template = config.get('body', '')
-        self.builtin_template = config.get('builtin_template', None)
         self.retry_count = min(max(config.get('retry_count', 0), 0), 5)
         self.timeout = config.get('timeout', 10)
         self.anime_quote_enabled = config.get('anime_quote_enabled', False)
-        
-        # AstrBot 简易模式
-        self.astrbot_mode = config.get('astrbot_mode', False)
-        self.astrbot_umo = config.get('astrbot_umo', '')
-        self.astrbot_header = config.get('astrbot_header', '文件变动')
-        self.astrbot_content = config.get('astrbot_content', '')
-        self.astrbot_extra = config.get('astrbot_extra', '')
-        self.astrbot_include_quote = config.get('astrbot_include_quote', True)
         
         # 验证 HTTP 方法
         if self.method not in self.ALLOWED_METHODS:
@@ -181,8 +133,6 @@ class GenericWebhookNotifier(BaseNotifier):
             "hostname": training_info.get("hostname", ""),
             "gpu_info": training_info.get("gpu_info", ""),
             "detail": training_info.get("detail", ""),
-            # AstrBot 特定参数
-            "astrbot_umo": self.astrbot_umo,
         }
         
         # 处理报告数据（多文件感知）
@@ -262,57 +212,8 @@ class GenericWebhookNotifier(BaseNotifier):
         """
         body_dict = None
         
-        # AstrBot 简易模式优先
-        if self.astrbot_mode:
-            # 使用用户要求的预设格式
-            content_parts = []
-            
-            # 表头
-            header = self._replace_variables(self.astrbot_header, context)
-            content_parts.append(f"📢 [ {header} ]")
-            content_parts.append("----------------------------")
-            
-            # 通知内容
-            if self.astrbot_content:
-                main_content = self._replace_variables(self.astrbot_content, context)
-                content_parts.append(main_content)
-            else:
-                # 默认内容
-                content_parts.append(f"📋 项目: {context.get('project_name', '')}")
-                content_parts.append(f"⏱️ 耗时: {context.get('duration', '')}")
-                content_parts.append(f"🔍 触发: {context.get('method', '')}")
-                
-                # 如果有报告摘要
-                if context.get("report_summary") and context["report_summary"] != "无":
-                    content_parts.append(f"📊 统计: {context['report_summary']}")
-            
-            content_parts.append("----------------------------")
-            
-            # 其他内容（如有）
-            if self.astrbot_extra:
-                extra_content = self._replace_variables(self.astrbot_extra, context)
-                content_parts.append(extra_content)
-                content_parts.append("")
-            
-            # 二次元语录
-            if self.astrbot_include_quote:
-                quote = get_anime_quote()
-                if quote:
-                    content_parts.append(f'"{quote}"')
-            
-            # content_parts.append("[ TaskNya ]")  # 底部签名可选，保持简洁可移除或保留
-            
-            body_dict = {
-                "content": "\n".join(content_parts),
-                "umo": self.astrbot_umo,
-                "message_type": "text"
-            }
-        # 使用内置模板
-        elif self.builtin_template and self.builtin_template in self.BUILTIN_TEMPLATES:
-            template = self.BUILTIN_TEMPLATES[self.builtin_template]
-            body_dict = template["body"].copy()
         # 使用自定义模板
-        elif self.body_template:
+        if self.body_template:
             if isinstance(self.body_template, str):
                 try:
                     body_dict = json.loads(self.body_template)
@@ -449,19 +350,6 @@ class GenericWebhookNotifier(BaseNotifier):
             raise
     
     @classmethod
-    def get_builtin_templates(cls) -> Dict[str, str]:
-        """
-        获取所有内置模板的描述
-        
-        Returns:
-            {模板名: 描述} 的字典
-        """
-        return {
-            name: template["description"]
-            for name, template in cls.BUILTIN_TEMPLATES.items()
-        }
-    
-    @classmethod
     def get_supported_variables(cls) -> List[str]:
         """
         获取支持的变量列表
@@ -479,7 +367,6 @@ class GenericWebhookNotifier(BaseNotifier):
             "gpu_info",
             "detail",
             "anime_quote",
-            "astrbot_umo",
             "report_summary",
             "report_change_list",
             "report_actions",

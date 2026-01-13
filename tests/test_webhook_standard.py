@@ -15,11 +15,9 @@ class TestGenericWebhookNotifier:
             "method": "POST",
             "headers": {"Content-Type": "application/json"},
             "body": "",
-            "builtin_template": None,
             "retry_count": 0,
             "timeout": 5,
             "anime_quote_enabled": False,
-            "astrbot_mode": False
         }
 
     @pytest.fixture
@@ -69,26 +67,6 @@ class TestGenericWebhookNotifier:
             body = json.loads(kwargs['data'])
             assert body['message'] == "Project TestProject finished in 0:05:00"
 
-    def test_astrbot_mode(self, config, training_info):
-        config["astrbot_mode"] = True
-        config["astrbot_umo"] = "Bot:Group:123"
-        config["astrbot_content"] = "Project ${project_name} Done"
-        notifier = GenericWebhookNotifier(config)
-        
-        with patch('requests.request') as mock_request:
-            mock_request.return_value.status_code = 200
-            notifier.send(training_info)
-            
-            kwargs = mock_request.call_args[1]
-            body = json.loads(kwargs['data'])
-            
-            # AstrBot specific fields
-            assert body['umo'] == "Bot:Group:123"
-            assert body['message_type'] == "text"
-            # Check content formatting
-            assert "📢 [ 文件变动 ]" in body['content']
-            assert "Project TestProject Done" in body['content']
-            assert "━━━━━━━━━━━━━━" in body['content']
 
     def test_directory_report_variables(self, config):
         """测试目录监控报告变量"""

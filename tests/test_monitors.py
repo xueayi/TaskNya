@@ -252,6 +252,46 @@ class TestGpuMonitor:
             monitor.check()
             assert monitor.low_power_count == 0
     
+    def test_gpu_monitor_trigger_mode_above(self):
+        """测试 trigger_mode='above' - 功耗高于阈值时触发"""
+        config = {
+            'check_gpu_power_enabled': True,
+            'check_gpu_power_threshold': 100.0,
+            'check_gpu_power_trigger_mode': 'above',  # 高于阈值触发
+            'check_gpu_power_gpu_ids': 'all',
+            'check_gpu_power_consecutive_checks': 2
+        }
+        monitor = GpuMonitor(config)
+        
+        # Mock nvidia-smi 输出高功耗
+        with patch('subprocess.check_output', return_value="0, 150.00\n1, 180.00\n"):
+            # 第一次检测
+            triggered, _, _ = monitor.check()
+            assert triggered is False  # 还未达到连续次数
+            assert monitor.low_power_count == 1
+            
+            # 第二次检测
+            triggered, method, _ = monitor.check()
+            assert triggered is True  # 达到连续次数
+            assert method == "GPU功耗检测"
+    
+    def test_gpu_monitor_trigger_mode_above_not_triggered(self):
+        """测试 trigger_mode='above' - 功耗低于阈值时不触发"""
+        config = {
+            'check_gpu_power_enabled': True,
+            'check_gpu_power_threshold': 100.0,
+            'check_gpu_power_trigger_mode': 'above',
+            'check_gpu_power_gpu_ids': 'all',
+            'check_gpu_power_consecutive_checks': 2
+        }
+        monitor = GpuMonitor(config)
+        
+        # Mock nvidia-smi 输出低功耗
+        with patch('subprocess.check_output', return_value="0, 50.00\n"):
+            triggered, _, _ = monitor.check()
+            assert triggered is False
+            assert monitor.low_power_count == 0
+    
     def test_gpu_monitor_nvidia_not_available(self):
         """测试无 NVIDIA 显卡时的处理"""
         config = {

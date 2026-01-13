@@ -85,18 +85,9 @@ DEFAULT_CONFIG = {
         "method": "POST",  # POST, PUT, GET, DELETE
         "headers": {"Content-Type": "application/json"},
         "body": "",  # 自定义 Body 模板
-        "builtin_template": None,  # 内置模板: astrbot, text, json, discord
         "retry_count": 0,  # 重试次数 0-5
         "timeout": 10,  # 请求超时（秒）
         "anime_quote_enabled": False,  # 是否在消息中追加二次元语录
-        
-        # AstrBot 简易模式
-        "astrbot_mode": False,  # 开启后直接填写内容即可
-        "astrbot_umo": "",  # AstrBot UMO 参数，如 "机器人名:GroupMessage:1067617112"
-        "astrbot_header": "文件变动",  # 通知表头
-        "astrbot_content": "",  # 通知主内容
-        "astrbot_extra": "",  # 其他内容（可选）
-        "astrbot_include_quote": True,  # 是否追加二次元语录
     }
 }
 

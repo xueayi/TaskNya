@@ -119,46 +119,63 @@
                         <!-- 基本配置选项卡 -->
                         <div class="tab-pane fade show active" id="general" role="tabpanel"
                             aria-labelledby="general-tab">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">项目名称</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-braces"></i></span>
-                                            <input type="text" class="form-control" name="monitor.project_name"
-                                                value="{{ config.monitor.project_name }}">
-                                        </div>
-                                    </div>
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="bi bi-sliders"></i> 基本设置</h5>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">检查间隔(秒)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
-                                            <input type="number" class="form-control" name="monitor.check_interval"
-                                                value="{{ config.monitor.check_interval }}">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">项目名称</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-braces"></i></span>
+                                                    <input type="text" class="form-control" name="monitor.project_name"
+                                                        value="{{ config.monitor.project_name }}">
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">日志打印间隔(秒)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-printer"></i></span>
-                                            <input type="number" class="form-control" name="monitor.logprint"
-                                                value="{{ config.monitor.logprint }}">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">检查间隔</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                                    <input type="text" class="form-control"
+                                                        name="monitor.check_interval"
+                                                        value="{{ config.monitor.check_interval }}"
+                                                        placeholder="例如: 60 或 1h30m">
+                                                </div>
+                                                <div class="form-text">支持秒数或时分格式（如
+                                                    <code>90</code>、<code>1h30m</code>、<code>30m5s</code>）
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">监控持续时间(秒)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="bi bi-hourglass-split"></i></span>
-                                            <input type="text" class="form-control" name="monitor.timeout"
-                                                value="{{ config.monitor.timeout or 'None' }}">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">日志打印间隔</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-printer"></i></span>
+                                                    <input type="text" class="form-control" name="monitor.logprint"
+                                                        value="{{ config.monitor.logprint }}" placeholder="例如: 60 或 5m">
+                                                </div>
+                                                <div class="form-text">支持秒数或时分格式（如
+                                                    <code>60</code>、<code>5m</code>、<code>1h</code>）
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="form-text">设置为None表示无超时限制</div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">监控持续时间</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i
+                                                            class="bi bi-hourglass-split"></i></span>
+                                                    <input type="text" class="form-control" name="monitor.timeout"
+                                                        value="{{ config.monitor.timeout or 'None' }}"
+                                                        placeholder="None 或 1h">
+                                                </div>
+                                                <div class="form-text">设置为 <code>None</code> 表示无超时限制，支持时分格式</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -187,8 +204,22 @@
                                                 value="{{ config.monitor.check_file_path }}">
                                         </div>
                                         <div class="form-text">
-                                            docker容器内默认映射路径为/app/monitor_targets/{待检测的文件名}，本地运行时路径根据需要可以配置为相对路径或者绝对路径
+                                            <strong>路径填写说明：</strong><br>
+                                            · <strong>Windows：</strong> <code>D:\outputs\model.pth</code> 或
+                                            <code>.\output\result.txt</code><br>
+                                            · <strong>Linux/Mac：</strong> <code>/home/user/training/model.pth</code> 或
+                                            <code>./output/result.txt</code><br>
+                                            · <strong>Docker容器：</strong> <code>/app/monitor_targets/目标文件名</code>（需在
+                                            docker-compose.yml 中挂载卷）
                                         </div>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" id="file_deletion_switch"
+                                            name="monitor.check_file_detect_deletion" {% if
+                                            config.monitor.check_file_detect_deletion %}checked{% endif %}>
+                                        <label class="form-check-label" for="file_deletion_switch">
+                                            <i class="bi bi-trash"></i> 检测文件删除（文件从存在变为不存在时触发通知）
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -247,7 +278,23 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">触发模式</label>
+                                                <select class="form-select" name="monitor.check_gpu_power_trigger_mode"
+                                                    id="gpu_trigger_mode_select">
+                                                    <option value="below" {% if
+                                                        config.monitor.check_gpu_power_trigger_mode=='below' or not
+                                                        config.monitor.check_gpu_power_trigger_mode %}selected{% endif
+                                                        %}>低于阈值触发</option>
+                                                    <option value="above" {% if
+                                                        config.monitor.check_gpu_power_trigger_mode=='above'
+                                                        %}selected{% endif %}>高于阈值触发</option>
+                                                </select>
+                                                <div class="form-text" id="gpu_mode_hint">适用于训练完成后功耗下降的情况</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">功耗阈值(瓦特)</label>
                                                 <div class="input-group">
@@ -256,25 +303,25 @@
                                                         value="{{ config.monitor.check_gpu_power_threshold }}">
                                                     <span class="input-group-text">W</span>
                                                 </div>
-                                                <div class="form-text">该功能需要安装nvidia-smi工具</div>
+                                                <div class="form-text">需安装 nvidia-smi</div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">GPU ID</label>
                                                 <input type="text" class="form-control"
                                                     name="monitor.check_gpu_power_gpu_ids"
                                                     value="{{ config.monitor.check_gpu_power_gpu_ids }}">
-                                                <div class="form-text">使用"all"或"0,1"检测所有或指定GPU</div>
+                                                <div class="form-text">"all" 或 "0,1"</div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">连续检测次数</label>
                                                 <input type="number" class="form-control"
                                                     name="monitor.check_gpu_power_consecutive_checks"
                                                     value="{{ config.monitor.check_gpu_power_consecutive_checks }}">
-                                                <div class="form-text">连续低于阈值的次数</div>
+                                                <div class="form-text" id="gpu_consecutive_hint">连续达到阈值后触发</div>
                                             </div>
                                         </div>
                                     </div>
@@ -316,7 +363,7 @@
                                                 <input type="checkbox" class="form-check-input" id="detect_added_switch"
                                                     name="monitor.check_directory_detect_added" {% if
                                                     config.monitor.check_directory_detect_added %}checked{% endif %}>
-                                                <label class="form-check-label" for="detect_added_switch">📥
+                                                <label class="form-check-label" for="detect_added_switch">
                                                     检测文件新增</label>
                                             </div>
                                         </div>
@@ -326,7 +373,7 @@
                                                     id="detect_removed_switch"
                                                     name="monitor.check_directory_detect_removed" {% if
                                                     config.monitor.check_directory_detect_removed %}checked{% endif %}>
-                                                <label class="form-check-label" for="detect_removed_switch">🗑️
+                                                <label class="form-check-label" for="detect_removed_switch">
                                                     检测文件删除</label>
                                             </div>
                                         </div>
@@ -336,7 +383,7 @@
                                                     id="detect_modified_switch"
                                                     name="monitor.check_directory_detect_modified" {% if
                                                     config.monitor.check_directory_detect_modified %}checked{% endif %}>
-                                                <label class="form-check-label" for="detect_modified_switch">✏️
+                                                <label class="form-check-label" for="detect_modified_switch">
                                                     检测文件修改</label>
                                             </div>
                                         </div>
@@ -387,11 +434,14 @@
                                     <div class="mb-3">
                                         <label class="form-label">操作建议配置</label>
                                         <textarea class="form-control" id="action_keywords_input"
-                                            name="monitor.check_directory_action_keywords_text" rows="3"
-                                            placeholder="格式: 建议内容: 关键词1, 关键词2"></textarea>
+                                            name="monitor.check_directory_action_keywords_text" rows="4"
+                                            placeholder="每行一组，格式：建议内容: 关键词1, 关键词2"></textarea>
                                         <div class="form-text">
-                                            每行一组，格式为 <code>建议: 关键词1, 关键词2</code><br>
-                                            例如: <code>备份: important, backup</code> (当文件名包含 important 或 backup 时建议备份)
+                                            <strong>格式说明：</strong>每行定义一个操作建议规则<br>
+                                            <strong>格式：</strong><code>建议内容: 关键词1, 关键词2, ...</code>（冒号分隔建议与关键词，逗号分隔多个关键词）<br>
+                                            <strong>示例：</strong><br>
+                                            <code>备份: important, backup</code> → 文件名含 important 或 backup 时建议"备份"<br>
+                                            <code>清理: .tmp, .cache, temp</code> → 文件名含 .tmp/.cache/temp 时建议"清理"
                                         </div>
                                     </div>
                                 </div>
@@ -624,107 +674,13 @@
                                         </div>
                                     </div>
 
-                                    <!-- AstrBot 简易模式 -->
-                                    <div class="card mb-3">
-                                        <div class="card-header py-2">
-                                            <div class="form-check form-switch">
-                                                <input type="checkbox" class="form-check-input" id="astrbot_mode_switch"
-                                                    name="generic_webhook.astrbot_mode" {% if
-                                                    config.generic_webhook.astrbot_mode %}checked{% endif %}
-                                                    onchange="toggleAstrBotFields()">
-                                                <label class="form-check-label" for="astrbot_mode_switch">
-                                                    <i class="bi bi-lightning"></i> AstrBot 简易模式
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="card-body" id="astrbot_mode_section">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">UMO 参数</label>
-                                                        <input type="text" class="form-control astrbot-field"
-                                                            name="generic_webhook.astrbot_umo"
-                                                            value="{{ config.generic_webhook.astrbot_umo }}"
-                                                            placeholder="例如: 机器人名:GroupMessage:1067617112">
-                                                        <div class="form-text">格式: 平台名:消息类型:目标ID</div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">通知表头</label>
-                                                        <input type="text" class="form-control astrbot-field"
-                                                            name="generic_webhook.astrbot_header"
-                                                            value="{{ config.generic_webhook.astrbot_header or '文件变动' }}"
-                                                            placeholder="例如: 文件变动">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">通知内容</label>
-                                                <textarea class="form-control astrbot-field"
-                                                    name="generic_webhook.astrbot_content" rows="4"
-                                                    placeholder="主要通知内容，支持变量">{{ config.generic_webhook.astrbot_content or '项目 ${project_name} 已完成\n耗时: ${duration}\n触发方式: ${method}' }}</textarea>
-                                                <div class="form-text">支持变量替换，见下方说明</div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">其他内容（可选）</label>
-                                                        <textarea class="form-control astrbot-field"
-                                                            name="generic_webhook.astrbot_extra" rows="2"
-                                                            placeholder="额外的补充信息">{{ config.generic_webhook.astrbot_extra or '' }}</textarea>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-check form-switch mt-4">
-                                                        <input type="checkbox" class="form-check-input astrbot-field"
-                                                            id="astrbot_quote_switch"
-                                                            name="generic_webhook.astrbot_include_quote" {% if
-                                                            config.generic_webhook.astrbot_include_quote %}checked{%
-                                                            endif %}>
-                                                        <label class="form-check-label" for="astrbot_quote_switch">
-                                                            <i class="bi bi-chat-quote"></i> 追加二次元语录
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="alert alert-info mb-0">
-                                                <strong>消息格式预览:</strong>
-                                                <pre class="mb-0 small">📢 [ ${表头} ]
-----------------------------
-${通知内容}
-----------------------------
-${其他内容}
-
-"${二次元语录}"</pre>
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     <!-- 自定义模式 -->
                                     <div class="mb-3" id="custom_body_section">
-                                        <label class="form-label">请求头 (JSON)（Astrbot模式也需要填写）</label>
+                                        <label class="form-label">请求头 (JSON)</label>
                                         <textarea class="form-control" name="generic_webhook.headers" rows="2"
                                             placeholder='{"Content-Type": "application/json"}'>{{ config.generic_webhook.headers | tojson if config.generic_webhook.headers else '{"Content-Type": "application/json"}' }}</textarea>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label class="form-label">内置模板</label>
-                                        <select class="form-select" name="generic_webhook.builtin_template">
-                                            <option value="" {% if not config.generic_webhook.builtin_template
-                                                %}selected{% endif %}>自定义 Body</option>
-                                            <option value="astrbot" {% if
-                                                config.generic_webhook.builtin_template=='astrbot' %}selected{% endif
-                                                %}>AstrBot 格式</option>
-                                            <option value="text" {% if config.generic_webhook.builtin_template=='text'
-                                                %}selected{% endif %}>简单文本</option>
-                                            <option value="json" {% if config.generic_webhook.builtin_template=='json'
-                                                %}selected{% endif %}>通用 JSON</option>
-                                            <option value="discord" {% if
-                                                config.generic_webhook.builtin_template=='discord' %}selected{% endif
-                                                %}>Discord 格式</option>
-                                        </select>
-                                    </div>
 
                                     <div class="mb-3">
                                         <label class="form-label">自定义 Body (JSON)</label>
@@ -874,32 +830,10 @@ ${其他内容}
                 }
             }
 
-            // AstrBot 简易模式字段禁用逻辑
-            function toggleAstrBotFields() {
-                const astrBotSwitch = document.getElementById('astrbot_mode_switch');
-                const fields = document.querySelectorAll('.astrbot-field');
-                const section = document.getElementById('astrbot_mode_section');
-
-                if (astrBotSwitch.checked) {
-                    section.style.opacity = '1';
-                    fields.forEach(field => {
-                        field.disabled = false;
-                    });
-                } else {
-                    section.style.opacity = '0.5';
-                    fields.forEach(field => {
-                        field.disabled = true;
-                    });
-                }
-            }
-
             // 页面加载完成后更新初始状态
             document.addEventListener('DOMContentLoaded', function () {
                 const initialStatus = '{{ initial_status }}';
                 updateStatusBadge(initialStatus);
-
-                // 初始化 AstrBot 字段状态
-                toggleAstrBotFields();
 
                 // 监听模态框关闭事件，确保移除 backdrop
                 document.querySelectorAll('.modal').forEach(modal => {

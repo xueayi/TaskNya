@@ -30,7 +30,7 @@ monitor:
   check_directory_recheck_delay: 20
   check_directory_report_path: ''
   check_file_detect_deletion: false
-  check_file_enabled: false
+  check_file_enabled: true
   check_file_path: /tmp/test_file.txt
   check_file_recheck_delay: 0
   check_gpu_power_consecutive_checks: 3
@@ -38,8 +38,8 @@ monitor:
   check_gpu_power_gpu_ids: all
   check_gpu_power_threshold: 50.0
   check_gpu_power_trigger_mode: below
-  check_interval: 300
-  check_log_enabled: false
+  check_interval: 60
+  check_log_enabled: true
   check_log_markers:
   - 完成
   - done
@@ -47,10 +47,10 @@ monitor:
   check_log_path: /tmp/test.log
   logprint: 60
   project_name: 监控任务
-  timeout: null
+  timeout: 0
 webhook:
   color: green
-  enabled: false
+  enabled: true
   footer: 测试消息
   include_duration: true
   include_duration_title: 耗时
