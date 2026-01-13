@@ -47,6 +47,7 @@ DEFAULT_CONFIG = {
         "check_directory_detect_added": True,    # 检测新增
         "check_directory_detect_removed": True,  # 检测删除
         "check_directory_detect_modified": False, # 检测修改（默认关闭，防噪）
+        "check_directory_continuous_mode": False,  # 持续监控模式：触发通知后继续运行
     },
     
     "webhook": {

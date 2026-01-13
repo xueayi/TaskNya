@@ -11,6 +11,7 @@ import tempfile
 from unittest.mock import patch, MagicMock
 
 from core.monitor import FileMonitor, LogMonitor, GpuMonitor, MonitorManager
+from core.monitor.directory_monitor import DirectoryMonitor
 
 
 class TestFileMonitor:
@@ -359,3 +360,46 @@ class TestMonitorManager:
         
         invalid = manager.get_monitor("不存在的监控器")
         assert invalid is None
+
+
+class TestDirectoryMonitor:
+    """目录监控器测试"""
+    
+    def test_directory_monitor_continuous_mode_enabled(self, temp_dir):
+        """测试持续监控模式配置启用"""
+        config = {
+            'check_directory_enabled': True,
+            'check_directory_path': temp_dir,
+            'check_directory_continuous_mode': True,
+        }
+        monitor = DirectoryMonitor(config)
+        
+        assert monitor.continuous_mode is True
+    
+    def test_directory_monitor_continuous_mode_disabled(self, temp_dir):
+        """测试持续监控模式配置禁用（默认）"""
+        config = {
+            'check_directory_enabled': True,
+            'check_directory_path': temp_dir,
+        }
+        monitor = DirectoryMonitor(config)
+        
+        assert monitor.continuous_mode is False
+    
+    def test_directory_monitor_reset(self, temp_dir):
+        """测试监控器重置功能"""
+        config = {
+            'check_directory_enabled': True,
+            'check_directory_path': temp_dir,
+            'check_directory_continuous_mode': True,
+        }
+        monitor = DirectoryMonitor(config)
+        
+        # 初始化
+        monitor.check()
+        assert monitor._initialized is True
+        
+        # 重置
+        monitor.reset()
+        assert monitor._initialized is False
+        assert monitor._last_snapshot is None

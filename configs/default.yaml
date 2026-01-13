@@ -20,6 +20,7 @@ generic_webhook:
   url: http://xxxx.xxx.xxxx:10010/send
 monitor:
   check_directory_action_keywords: {}
+  check_directory_continuous_mode: false
   check_directory_detect_added: true
   check_directory_detect_modified: false
   check_directory_detect_removed: true

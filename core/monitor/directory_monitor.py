@@ -98,6 +98,9 @@ class DirectoryMonitor(BaseMonitor):
         self.detect_removed = config.get('check_directory_detect_removed', True)
         self.detect_modified = config.get('check_directory_detect_modified', False)
         
+        # 持续监控模式：触发通知后继续运行
+        self.continuous_mode = config.get('check_directory_continuous_mode', False)
+        
         # 状态
         self._last_snapshot: Optional[DirectorySnapshot] = None
         self._pending_changes: Optional[List[FileChange]] = None

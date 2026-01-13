@@ -401,6 +401,17 @@
                                                         检测文件夹变化
                                                     </label>
                                                 </div>
+                                                <div class="form-check form-switch pt-2">
+                                                    <input type="checkbox" class="form-check-input"
+                                                        id="continuous_mode_switch"
+                                                        name="monitor.check_directory_continuous_mode" {% if
+                                                        config.monitor.check_directory_continuous_mode %}checked{% endif
+                                                        %}>
+                                                    <label class="form-check-label" for="continuous_mode_switch">
+                                                        <i class="bi bi-arrow-repeat"></i> 持续监控模式
+                                                    </label>
+                                                    <div class="form-text">触发通知后继续运行，持续捕获变化</div>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="col-md-4">

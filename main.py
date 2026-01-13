@@ -186,6 +186,16 @@ class TrainingMonitor:
                 
                 logger.info(f"任务已完成！总耗时: {training_info['duration']}")
                 self.send_notification(training_info)
+                
+                # 如果是目录监控触发且启用了持续模式，重置并继续
+                if method == "目录变化检测":
+                    dir_monitor = self._monitor_manager.get_monitor("目录监控")
+                    if dir_monitor and getattr(dir_monitor, 'continuous_mode', False):
+                        logger.info("持续监控模式：重置目录监控器，继续检测")
+                        dir_monitor.reset()
+                        self.start_time = datetime.now()  # 重置计时
+                        continue  # 不 break，继续监控
+                
                 break
             
             time.sleep(check_interval)
