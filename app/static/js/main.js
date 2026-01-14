@@ -436,7 +436,7 @@ function collectFormData() {
             // 其他webhook字段（包括_title结尾的）保持原始值
         } else if (section === 'generic_webhook') {
             // 处理 generic_webhook 配置段
-            if (field === 'enabled' || field === 'astrbot_mode' || field === 'anime_quote_enabled' || field === 'astrbot_include_quote') {
+            if (field === 'enabled' || field === 'anime_quote_enabled') {
                 value = input.checked;
             } else if (field === 'retry_count' || field === 'timeout') {
                 value = parseInt(value) || 0;

@@ -198,7 +198,13 @@ class TrainingMonitor:
                 
                 break
             
-            time.sleep(check_interval)
+            # 响应式等待，以便能够快速响应停止信号
+            # 将等待分解为 1 秒的小间隔
+            for _ in range(int(check_interval)):
+                if self.should_stop():
+                    break
+                time.sleep(1)
+            
             elapsed_time += check_interval
             
             # 超时检查

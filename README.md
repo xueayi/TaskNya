@@ -24,6 +24,7 @@
       - [安装依赖](#安装依赖)
       - [命令行方式](#命令行方式)
       - [Web界面方式（推荐）](#web界面方式推荐)
+    - [Linux 后台持久化运行](#linux-后台持久化运行)
     - [Docker方式](#docker方式)
       - [使用 Docker 镜像](#直接使用-docker-镜像)
       - [使用 Docker Compose](#或者使用-docker-compose)
@@ -138,6 +139,29 @@ Web界面功能：
 >    - 其他Web应用
 >    - Docker容器
 >    - 开发服务器
+
+#### Linux 后台持久化运行
+
+在 Linux 服务器上，如果希望关闭终端后程序依然运行，可以使用配套的 `manage_webui.sh` 脚本进行管理：
+
+```bash
+# 赋予执行权限
+chmod +x manage_webui.sh
+
+# 启动服务 (后台)
+./manage_webui.sh start
+
+# 停止服务
+./manage_webui.sh stop
+
+# 重启服务
+./manage_webui.sh restart
+
+# 查看状态和日志
+./manage_webui.sh status
+```
+
+启动后，日志将实时写入项目根目录下的 `output.log` 文件。
 
 ### Docker方式
 
