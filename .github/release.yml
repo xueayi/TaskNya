@@ -1,0 +1,30 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - bot
+  categories:
+    - title: "新特性 (Features)"
+      labels:
+        - feature
+        - feat
+    - title: "缺陷修复 (Bug Fixes)"
+      labels:
+        - bug
+        - fix
+    - title: "文档说明 (Documentation)"
+      labels:
+        - documentation
+        - docs
+    - title: "持续集成与维护 (CI/CD & Maintenance)"
+      labels:
+        - chore
+        - ci
+        - build
+    - title: "代码重构 (Refactoring)"
+      labels:
+        - refactor
+    - title: "测试验证 (Tests)"
+      labels:
+        - test
