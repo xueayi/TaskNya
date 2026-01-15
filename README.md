@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🐈 TaskNya - 实时任务监控系统
+# TaskNya - 实时任务监控通知系统
 
 [项目主页](https://github.com/xueayi/TaskNya) | [用户指南](docs/user_guide.md) | [开发手册](docs/DEVELOPMENT.md) | [API 调用](docs/api_reference.md)
 
@@ -102,8 +102,8 @@ docker run -d -p 5000:5000 -v $(pwd)/logs:/app/logs xueayis/tasknya:latest
 
 ## 开发 & 贡献  
 
-欢迎贡献代码！请先 fork 项目，然后提交 Pull Request 😃  
-如果你喜欢该项目的话欢迎添加star！ ⭐
+欢迎贡献代码！请先 fork 项目，然后提交 Pull Request   
+如果你喜欢该项目的话欢迎添加star！
 
 ---
 
