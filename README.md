@@ -1,12 +1,16 @@
+<div align="center">
+
 # 🐈 TaskNya - 实时任务监控系统
 
 [项目主页](https://github.com/xueayi/TaskNya) | [用户指南](docs/user_guide.md) | [开发手册](docs/DEVELOPMENT.md) | [API 引用](docs/api_reference.md)
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white) 
+![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat-square&logo=python&logoColor=white) 
 ![Flask](https://img.shields.io/badge/Flask-3.0%2B-000000?style=flat-square&logo=flask&logoColor=white)
 ![WebSocket](https://img.shields.io/badge/WebSocket-Enabled-F5DE19?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square) 
-![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg?style=flat-square)  
+![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg?style=flat-square)
+
+</div>
 
 **TaskNya** 是一个通用的任务监控与通知工具，适用于 **深度学习训练、服务器任务、批处理脚本、日志监控、资源管理等**。  
 它能够 **检测任务完成状态**（基于文件、日志、GPU 资源），并通过 **Webhook** 发送通知到 **任意支持 Webhook 的平台**（如 飞书、Astrbot 等）。  

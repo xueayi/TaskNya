@@ -27,7 +27,7 @@
 **TaskNya** 采用模块化设计，旨在提供一个可扩展的实时任务监控框架。核心逻辑（`core/`）与展现层（`app/` / `main.py`）解耦。
 
 ### 技术栈
-- **后端**: Python 3.8+, Flask, Flask-Sock (WebSocket)
+- **后端**: Python 3.12, Flask, Flask-Sock (WebSocket)
 - **核心**: 抽象基类 (ABC), YAML 配置管理
 - **前端**: Vanilla JS, Bootstrap 5, BiIcons
 
