@@ -1,11 +1,15 @@
 # 🐈 TaskNya - 实时任务监控系统
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg) 
-![License](https://img.shields.io/badge/License-MIT-green.svg) 
-![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)  
+[项目主页](https://github.com/xueayi/TaskNya) | [用户指南](docs/user_guide.md) | [开发手册](docs/DEVELOPMENT.md) | [API 引用](docs/api_reference.md)
+
+![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white) 
+![Flask](https://img.shields.io/badge/Flask-3.0%2B-000000?style=flat-square&logo=flask&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket-Enabled-F5DE19?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square) 
+![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg?style=flat-square)  
 
 **TaskNya** 是一个通用的任务监控与通知工具，适用于 **深度学习训练、服务器任务、批处理脚本、日志监控、资源管理等**。  
-它能够 **检测任务完成状态**（基于文件、日志、GPU 资源），并通过 **Webhook** 发送通知到 **任意支持 Webhook 的平台**（如 飞书、钉钉、Slack、Discord、Teams 等）。  
+它能够 **检测任务完成状态**（基于文件、日志、GPU 资源），并通过 **Webhook** 发送通知到 **任意支持 Webhook 的平台**（如 飞书、Astrbot 等）。  
 
 ![Web界面](images/webui.png)
 [飞书推送效果预览](images/飞书推送.jpg)
@@ -14,45 +18,31 @@
 
 ## 目录
 
-- 🐈 TaskNya - 实时任务监控系统
-  - [目录](#目录)
-  - [主要功能](#主要功能)
-  - [安装和使用](#安装和使用)
-    - [Windows中的使用方式](#windows中的使用方式)
-    - [命令行方式](#命令行方式)
-      - [克隆项目](#克隆项目)
-      - [安装依赖](#安装依赖)
-      - [命令行方式](#命令行方式)
-      - [Web界面方式（推荐）](#web界面方式推荐)
-    - [Linux 后台持久化运行](#linux-后台持久化运行)
-    - [Docker方式](#docker方式)
-      - [使用 Docker 镜像](#直接使用-docker-镜像)
-      - [使用 Docker Compose](#或者使用-docker-compose)
-      - [文件映射说明](#文件映射说明)
-      - [docker使用注意事项](#docker使用注意事项)
-    - [配置文件说明](#配置文件说明)
-    - [目录结构](#目录结构)
-  - [注意事项](#注意事项)
-  - [开发 \& 贡献](#开发--贡献)
-  - [许可证](#许可证)
+- [主要功能](#主要功能)
+- [安装和使用](#安装和使用)
+  - [Windows 运行](#windows中的使用方式)
+  - [命令行运行](#命令行方式)
+  - [Linux 后台运行](#linux-后台运行)
+  - [Docker 部署](#docker方式)
+- [配置文件说明](#配置文件说明)
+- [目录结构](#目录结构)
+- [常见问题](#注意事项)
+
 ---
 
 ## 主要功能  
 
-- [x] **文件检测**：当指定的文件生成后，触发通知（适用于模型训练完成、数据处理完成等）。  
-- [x] **日志检测**：当日志文件中出现指定关键字时，触发通知（适用于日志分析、异常监控等）。  
-- [x] **GPU 资源检测**：当 GPU 功耗持续低于阈值时，触发通知（适用于深度学习训练结束检测）。  
-- [x] **Webhook 通知**：支持 **飞书、钉钉、Slack、Discord、Teams** 等平台，可自定义通知内容。  
-- [x] **可自定义配置**：支持 **YAML 配置文件**，可调整检测规则和通知格式。  
-- [x] **Web界面**：提供直观的Web配置界面，可实时修改和应用配置。
-- [X] **docker**：支持docker部署。
-- [X] **Windows环境适配**：可以在Windows中运行。
-- [ ] 钉钉适配中
-- [ ] examples不同场景范例
-- [ ] Pypl
-- [ ] 邮箱推送支持
-- [ ] 企业微信推送支持
-- [ ] 更多可选触发条件预设
+- [x] **文件检测**：当指定文件生成后，触发通知（适用于模型训练完成、计算结束等）。  
+- [x] **日志检测**：当日志中出现指定关键字时，触发通知（支持全量和增量检测）。  
+- [x] **GPU 资源检测**：当 GPU 功耗持续低于阈值时，触发通知（智能判断训练结束）。  
+- [x] **多文件感知 (目录监控)**：实时监控整个目录的文件变动（新增、删除、修改），支持二次确认逻辑以确保文件写入完整，并可根据文件名提供智能操作建议。
+- [x] **Webhook 通知**：支持 **飞书、Astrbot** 等平台，支持自定义卡片样式。  
+- [x] **二次元语录**：通知内容可选附带随机生成的二次元语录，为枯燥的科研/开发生活增添一份趣味。
+- [x] **Web 管理后台**：提供实时配置、日志查看、任务控制等图形化操作。
+- [X] **Docker 支持**：提供官方 Dockerfile 与 Compose 配置，支持一键部署。
+- [X] **跨平台适配**：完美支持 Windows 与 Linux 环境。
+- [ ] 邮箱/企业微信推送深度集成中
+- [ ] 更多触发条件预设 (CPU/内存/磁盘)
 
 ---
 
