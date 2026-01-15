@@ -2,7 +2,7 @@
 
 # 🐈 TaskNya - 实时任务监控系统
 
-[项目主页](https://github.com/xueayi/TaskNya) | [用户指南](docs/user_guide.md) | [开发手册](docs/DEVELOPMENT.md) | [API 引用](docs/api_reference.md)
+[项目主页](https://github.com/xueayi/TaskNya) | [用户指南](docs/user_guide.md) | [开发手册](docs/DEVELOPMENT.md) | [API 调用](docs/api_reference.md)
 
 ![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat-square&logo=python&logoColor=white) 
 ![Flask](https://img.shields.io/badge/Flask-3.0%2B-000000?style=flat-square&logo=flask&logoColor=white)
@@ -55,7 +55,7 @@
 ### Windows中的使用方式
 
 - 在[发布页](https://github.com/xueayi/TaskNya/releases)下载最新程序
-- 安装 python3.8 以上运行环境
+- 安装 python3.12 以上运行环境
 - 双击`install_requirements.bat`程序安装依赖
 - 双击`start_webui.bat`启动程序
 - 在浏览器中访问 `http://localhost:5000` 即可打开Web界面。
@@ -80,7 +80,7 @@ pip install nvidia-ml-py3==7.352.0
 ```
 
 > **环境要求：**
-> - Python 3.8 及以上
+> - Python 3.12 及以上
 > - GPU监控功能需要NVIDIA显卡和nvidia-smi工具（可选）
 
 #### 命令行方式
