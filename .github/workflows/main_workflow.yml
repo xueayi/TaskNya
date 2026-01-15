@@ -86,7 +86,7 @@ jobs:
         with:
           files: |
             ./release/TaskNya-*.exe
-          name: Release ${{ github.ref_name }}
+          name: TaskNya ${{ github.ref_name }}
           body: |
             ## TaskNya ${{ github.ref_name }} 发布记录
             
