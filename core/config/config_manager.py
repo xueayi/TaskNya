@@ -137,6 +137,10 @@ class ConfigManager:
         if 'generic_webhook' in user_config and user_config['generic_webhook']:
             result['generic_webhook'].update(user_config['generic_webhook'])
         
+        # 合并 email 配置
+        if 'email' in user_config and user_config['email']:
+            result['email'].update(user_config['email'])
+        
         return result
     
     @staticmethod
@@ -171,6 +175,15 @@ class ConfigManager:
             webhook = config.get('webhook', {})
             if 'enabled' in webhook:
                 webhook['enabled'] = bool(webhook['enabled'])
+            
+            # 验证 email 配置
+            email = config.get('email', {})
+            if 'enabled' in email:
+                email['enabled'] = bool(email['enabled'])
+            if 'smtp_port' in email:
+                email['smtp_port'] = int(email['smtp_port'])
+            if 'use_ssl' in email:
+                email['use_ssl'] = bool(email['use_ssl'])
                 
             return True
             

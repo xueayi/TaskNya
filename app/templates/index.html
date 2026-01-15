@@ -461,6 +461,189 @@
 
                         <!-- 通知设置选项卡 -->
                         <div class="tab-pane fade" id="notification" role="tabpanel" aria-labelledby="notification-tab">
+
+                            <!-- 通知内容设置(共享配置) -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-list-check"></i> 通知内容设置
+                                    </h5>
+                                    <small class="d-block mt-1">
+                                        <i class="bi bi-info-circle"></i>
+                                        以下设置对所有启用的通知器生效:
+                                        <span class="badge bg-light text-dark">飞书</span>
+                                        <span class="badge bg-light text-dark">邮件</span>
+                                    </small>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="mb-3"><i class="bi bi-card-list"></i> 基本信息字段</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox"
+                                                        class="form-check-input shared-content-option"
+                                                        id="shared_include_project_name"
+                                                        name="webhook.include_project_name" {% if
+                                                        config.webhook.include_project_name %}checked{% endif %}>
+                                                    <label class="form-check-label" for="shared_include_project_name">
+                                                        包含项目名称
+                                                    </label>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm mt-2"
+                                                    name="webhook.include_project_name_title"
+                                                    value="{{ config.webhook.include_project_name_title }}"
+                                                    placeholder="字段标题">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox"
+                                                        class="form-check-input shared-content-option"
+                                                        id="shared_include_start_time" name="webhook.include_start_time"
+                                                        {% if config.webhook.include_start_time %}checked{% endif %}>
+                                                    <label class="form-check-label" for="shared_include_start_time">
+                                                        包含开始时间
+                                                    </label>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm mt-2"
+                                                    name="webhook.include_start_time_title"
+                                                    value="{{ config.webhook.include_start_time_title }}"
+                                                    placeholder="字段标题">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox"
+                                                        class="form-check-input shared-content-option"
+                                                        id="shared_include_end_time" name="webhook.include_end_time" {%
+                                                        if config.webhook.include_end_time %}checked{% endif %}>
+                                                    <label class="form-check-label" for="shared_include_end_time">
+                                                        包含结束时间
+                                                    </label>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm mt-2"
+                                                    name="webhook.include_end_time_title"
+                                                    value="{{ config.webhook.include_end_time_title }}"
+                                                    placeholder="字段标题">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox"
+                                                        class="form-check-input shared-content-option"
+                                                        id="shared_include_method" name="webhook.include_method" {% if
+                                                        config.webhook.include_method %}checked{% endif %}>
+                                                    <label class="form-check-label" for="shared_include_method">
+                                                        包含判断方法
+                                                    </label>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm mt-2"
+                                                    name="webhook.include_method_title"
+                                                    value="{{ config.webhook.include_method_title }}"
+                                                    placeholder="字段标题">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox"
+                                                        class="form-check-input shared-content-option"
+                                                        id="shared_include_duration" name="webhook.include_duration" {%
+                                                        if config.webhook.include_duration %}checked{% endif %}>
+                                                    <label class="form-check-label" for="shared_include_duration">
+                                                        包含任务时长
+                                                    </label>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm mt-2"
+                                                    name="webhook.include_duration_title"
+                                                    value="{{ config.webhook.include_duration_title }}"
+                                                    placeholder="字段标题">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox"
+                                                        class="form-check-input shared-content-option"
+                                                        id="shared_include_hostname" name="webhook.include_hostname" {%
+                                                        if config.webhook.include_hostname %}checked{% endif %}>
+                                                    <label class="form-check-label" for="shared_include_hostname">
+                                                        包含主机名
+                                                    </label>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm mt-2"
+                                                    name="webhook.include_hostname_title"
+                                                    value="{{ config.webhook.include_hostname_title }}"
+                                                    placeholder="字段标题">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input type="checkbox"
+                                                        class="form-check-input shared-content-option"
+                                                        id="shared_include_gpu_info" name="webhook.include_gpu_info" {%
+                                                        if config.webhook.include_gpu_info %}checked{% endif %}>
+                                                    <label class="form-check-label" for="shared_include_gpu_info">
+                                                        包含GPU信息
+                                                    </label>
+                                                </div>
+                                                <input type="text" class="form-control form-control-sm mt-2"
+                                                    name="webhook.include_gpu_info_title"
+                                                    value="{{ config.webhook.include_gpu_info_title }}"
+                                                    placeholder="字段标题">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-4">
+
+                                    <h6 class="mb-3"><i class="bi bi-folder2-open"></i> 目录监控报告选项</h6>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input shared-content-option"
+                                                    id="shared_include_report_summary"
+                                                    name="webhook.include_report_summary" {% if
+                                                    config.webhook.include_report_summary %}checked{% endif %}>
+                                                <label class="form-check-label" for="shared_include_report_summary">
+                                                    显示报告摘要统计
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">如: 新增3项, 删除1项</small>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input shared-content-option"
+                                                    id="shared_include_report_details"
+                                                    name="webhook.include_report_details" {% if
+                                                    config.webhook.include_report_details %}checked{% endif %}>
+                                                <label class="form-check-label" for="shared_include_report_details">
+                                                    显示详细文件列表
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">显示新增/删除/修改的文件</small>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input shared-content-option"
+                                                    id="shared_include_report_actions"
+                                                    name="webhook.include_report_actions" {% if
+                                                    config.webhook.include_report_actions %}checked{% endif %}>
+                                                <label class="form-check-label" for="shared_include_report_actions">
+                                                    显示建议操作
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">基于关键词匹配的操作建议</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Webhook配置 -->
                             <div class="card mb-4">
                                 <div class="card-header">
@@ -517,111 +700,85 @@
                                         <input type="text" class="form-control" name="webhook.footer"
                                             value="{{ config.webhook.footer }}">
                                     </div>
+                                </div>
+                            </div>
 
-                                    <h5 class="mt-4 mb-3">通知内容设置</h5>
+                            <!-- 邮件通知配置 -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" id="email_switch"
+                                            name="email.enabled" {% if config.email.enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="email_switch">
+                                            <i class="bi bi-envelope"></i> 邮件通知
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        id="include_project_name" name="webhook.include_project_name" {%
-                                                        if config.webhook.include_project_name %}checked{% endif %}>
-                                                    <label class="form-check-label"
-                                                        for="include_project_name">包含项目名称</label>
-                                                </div>
-                                                <input type="text" class="form-control mt-2"
-                                                    name="webhook.include_project_name_title"
-                                                    value="{{ config.webhook.include_project_name_title }}"
-                                                    placeholder="标题">
+                                                <label class="form-label">SMTP 服务器</label>
+                                                <input type="text" class="form-control" name="email.smtp_server"
+                                                    value="{{ config.email.smtp_server }}" placeholder="smtp.qq.com">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">SMTP 端口</label>
+                                                <input type="number" class="form-control" name="email.smtp_port"
+                                                    value="{{ config.email.smtp_port }}" placeholder="465">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check form-switch mt-4 pt-2">
+                                                <input type="checkbox" class="form-check-input" id="email_ssl_switch"
+                                                    name="email.use_ssl" {% if config.email.use_ssl %}checked{% endif
+                                                    %}>
+                                                <label class="form-check-label" for="email_ssl_switch">使用 SSL</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">SMTP 用户名</label>
+                                                <input type="text" class="form-control" name="email.smtp_user"
+                                                    value="{{ config.email.smtp_user }}"
+                                                    placeholder="your-email@qq.com">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        id="include_start_time" name="webhook.include_start_time" {% if
-                                                        config.webhook.include_start_time %}checked{% endif %}>
-                                                    <label class="form-check-label"
-                                                        for="include_start_time">包含开始时间</label>
-                                                </div>
-                                                <input type="text" class="form-control mt-2"
-                                                    name="webhook.include_start_time_title"
-                                                    value="{{ config.webhook.include_start_time_title }}"
-                                                    placeholder="标题">
+                                                <label class="form-label">SMTP 密码/授权码</label>
+                                                <input type="password" class="form-control" name="email.smtp_password"
+                                                    value="{{ config.email.smtp_password }}" placeholder="你的授权码">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">发件人</label>
+                                                <input type="text" class="form-control" name="email.sender"
+                                                    value="{{ config.email.sender }}" placeholder="your-email@qq.com">
+                                                <div class="form-text">SMTP服务器对应的发件邮箱</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        id="include_end_time" name="webhook.include_end_time" {% if
-                                                        config.webhook.include_end_time %}checked{% endif %}>
-                                                    <label class="form-check-label"
-                                                        for="include_end_time">包含结束时间</label>
-                                                </div>
-                                                <input type="text" class="form-control mt-2"
-                                                    name="webhook.include_end_time_title"
-                                                    value="{{ config.webhook.include_end_time_title }}"
-                                                    placeholder="标题">
+                                                <label class="form-label">收件人</label>
+                                                <input type="text" class="form-control" name="email.recipient"
+                                                    value="{{ config.email.recipient }}"
+                                                    placeholder="recipient@example.com">
+                                                <div class="form-text">多个收件人请使用逗号或分号分隔</div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input" id="include_method"
-                                                        name="webhook.include_method" {% if
-                                                        config.webhook.include_method %}checked{% endif %}>
-                                                    <label class="form-check-label" for="include_method">包含判断方法</label>
-                                                </div>
-                                                <input type="text" class="form-control mt-2"
-                                                    name="webhook.include_method_title"
-                                                    value="{{ config.webhook.include_method_title }}" placeholder="标题">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        id="include_duration" name="webhook.include_duration" {% if
-                                                        config.webhook.include_duration %}checked{% endif %}>
-                                                    <label class="form-check-label"
-                                                        for="include_duration">包含任务时长</label>
-                                                </div>
-                                                <input type="text" class="form-control mt-2"
-                                                    name="webhook.include_duration_title"
-                                                    value="{{ config.webhook.include_duration_title }}"
-                                                    placeholder="标题">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        id="include_hostname" name="webhook.include_hostname" {% if
-                                                        config.webhook.include_hostname %}checked{% endif %}>
-                                                    <label class="form-check-label" for="include_hostname">包含主机名</label>
-                                                </div>
-                                                <input type="text" class="form-control mt-2"
-                                                    name="webhook.include_hostname_title"
-                                                    value="{{ config.webhook.include_hostname_title }}"
-                                                    placeholder="标题">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        id="include_gpu_info" name="webhook.include_gpu_info" {% if
-                                                        config.webhook.include_gpu_info %}checked{% endif %}>
-                                                    <label class="form-check-label"
-                                                        for="include_gpu_info">包含GPU信息</label>
-                                                </div>
-                                                <input type="text" class="form-control mt-2"
-                                                    name="webhook.include_gpu_info_title"
-                                                    value="{{ config.webhook.include_gpu_info_title }}"
-                                                    placeholder="标题">
-                                            </div>
-                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">邮件标题</label>
+                                        <input type="text" class="form-control" name="email.title"
+                                            value="{{ config.email.title }}">
                                     </div>
                                 </div>
                             </div>

@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core.config import ConfigManager, DEFAULT_CONFIG
 from core.monitor import MonitorManager
-from core.notifier import WebhookNotifier, GenericWebhookNotifier, MessageBuilder
+from core.notifier import WebhookNotifier, GenericWebhookNotifier, EmailNotifier, MessageBuilder
 from core.utils import get_gpu_info, setup_logger
 from core.utils.logger import get_default_log_path
 
@@ -68,6 +68,7 @@ class TrainingMonitor:
         self._monitor_manager = MonitorManager(self.config)
         self._notifier = WebhookNotifier(self.config.get('webhook', {}))
         self._generic_notifier = GenericWebhookNotifier(self.config.get('generic_webhook', {}))
+        self._email_notifier = EmailNotifier(self.config.get('email', {}))
         self._message_builder = MessageBuilder(self.config.get('webhook', {}))
         
         # 状态
@@ -135,6 +136,11 @@ class TrainingMonitor:
         # 发送通用 Webhook 通知
         if self._generic_notifier.enabled:
             if not self._generic_notifier.send(training_info):
+                success = False
+        
+        # 发送邮件通知
+        if self._email_notifier.enabled:
+            if not self._email_notifier.send(training_info):
                 success = False
         
         return success

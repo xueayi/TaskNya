@@ -10,7 +10,9 @@ function getFormData() {
     const formData = new FormData(form);
     const config = {
         monitor: {},
-        webhook: {}
+        webhook: {},
+        generic_webhook: {},
+        email: {}
     };
 
     // 处理表单数据
@@ -26,11 +28,9 @@ function getFormData() {
             } else if (key.includes('threshold')) {
                 config.monitor[field] = parseFloat(value);
             } else if (key.includes('interval') || key.includes('checks') || field === 'logprint') {
-                // 确保logprint也被转换为整数
                 const num = parseInt(value);
                 config.monitor[field] = isNaN(num) ? null : num;
             } else if (key === 'monitor.check_log_mode') {
-                // 处理日志检测模式
                 config.monitor[field] = value;
             } else {
                 config.monitor[field] = value;
@@ -41,6 +41,36 @@ function getFormData() {
             } else {
                 config.webhook[field] = value;
             }
+        } else if (section === 'generic_webhook') {
+            if (field === 'enabled' || field === 'anime_quote_enabled') {
+                config.generic_webhook[field] = value === 'on';
+            } else if (field === 'retry_count' || field === 'timeout') {
+                config.generic_webhook[field] = parseInt(value) || 0;
+            } else if (field === 'headers') {
+                try {
+                    config.generic_webhook[field] = JSON.parse(value || '{}');
+                } catch (e) {
+                    config.generic_webhook[field] = { "Content-Type": "application/json" };
+                }
+            } else {
+                config.generic_webhook[field] = value;
+            }
+        } else if (section === 'email') {
+            if (field === 'enabled' || field === 'use_ssl') {
+                config.email[field] = value === 'on';
+            } else if (field === 'smtp_port') {
+                config.email[field] = parseInt(value) || 465;
+            } else {
+                config.email[field] = value;
+            }
+        }
+    });
+
+    // 同步共享配置选项: 将webhook的include_*选项同步到email
+    // 这样邮件和飞书使用相同的内容显示设置
+    Object.keys(config.webhook).forEach(key => {
+        if (key.startsWith('include_')) {
+            config.email[key] = config.webhook[key];
         }
     });
 
@@ -184,13 +214,40 @@ async function loadConfig(filename) {
                     if (input.type === 'checkbox') {
                         input.checked = value;
                     } else if (key.endsWith('_title')) {
-                        // 处理标题字段
                         input.value = value || '';
                     } else {
                         input.value = value;
                     }
                 }
             });
+
+            if (config.generic_webhook) {
+                Object.entries(config.generic_webhook).forEach(([key, value]) => {
+                    const input = document.querySelector(`[name="generic_webhook.${key}"]`);
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            input.checked = value;
+                        } else if (key === 'headers') {
+                            input.value = JSON.stringify(value, null, 2);
+                        } else {
+                            input.value = value || '';
+                        }
+                    }
+                });
+            }
+
+            if (config.email) {
+                Object.entries(config.email).forEach(([key, value]) => {
+                    const input = document.querySelector(`[name="email.${key}"]`);
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            input.checked = value;
+                        } else {
+                            input.value = value || '';
+                        }
+                    }
+                });
+            }
 
             // 关闭模态框
             const modal = bootstrap.Modal.getInstance(document.getElementById('configListModal'));
@@ -381,7 +438,8 @@ function collectFormData() {
     const config = {
         monitor: {},
         webhook: {},
-        generic_webhook: {}
+        generic_webhook: {},
+        email: {}
     };
 
     // 收集所有input元素的值
@@ -451,6 +509,12 @@ function collectFormData() {
                 // 空字符串转换为 null
                 value = value || null;
             }
+        } else if (section === 'email') {
+            if (field === 'enabled' || field === 'use_ssl') {
+                value = input.checked;
+            } else if (field === 'smtp_port') {
+                value = parseInt(value) || 465;
+            }
         }
 
         // 设置值到配置对象
@@ -460,6 +524,8 @@ function collectFormData() {
             config.webhook[field] = value;
         } else if (section === 'generic_webhook') {
             config.generic_webhook[field] = value;
+        } else if (section === 'email') {
+            config.email[field] = value;
         }
     });
 

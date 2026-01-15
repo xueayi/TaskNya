@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, 'Microsoft YaHei', sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
+        .info-item { margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #667eea; }
+        .info-label { font-weight: bold; color: #667eea; }
+        .file-list { background: white; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .file-item { padding: 5px 0; border-bottom: 1px solid #eee; }
+        .file-item:last-child { border-bottom: none; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-right: 5px; }
+        .badge-add { background: #d4edda; color: #155724; }
+        .badge-remove { background: #f8d7da; color: #721c24; }
+        .badge-modify { background: #fff3cd; color: #856404; }
+        .summary { background: #e7f3ff; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 任务完成通知</h1>
+        </div>
+        <div class="content">
+
+            <div class="info-item">
+                <span class="info-label">训练项目:</span> 测试项目
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">训练开始:</span> 2026-01-15 18:02:03
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">训练结束时间:</span> 2026-01-15 18:02:03
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">系统判断依据:</span> 目录变化检测
+            </div>
+
+            <div class="summary">
+                <strong>📊 变化统计:</strong> 新增 3 项, 删除 1 项, 修改 1 项
+            </div>
+<div class="file-list"><strong>📥 新增文件:</strong><div class="file-item"><span class="badge badge-add">新增</span>file1.txt (1.2 MB) 💡备份</div><div class="file-item"><span class="badge badge-add">新增</span>file2.py (5.3 KB)</div><div class="file-item"><span class="badge badge-add">新增</span>folder1 (目录)</div></div><div class="file-list"><strong>🗑️ 删除文件:</strong><div class="file-item"><span class="badge badge-remove">删除</span>old_file.log (100 KB)</div></div><div class="file-list"><strong>✏️ 修改文件:</strong><div class="file-item"><span class="badge badge-modify">修改</span>config.yaml (2.1 KB) 💡检查</div></div>
+            <div class="info-item">
+                <span class="info-label">💡 建议操作:</span> 备份, 检查
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">总耗时:</span> 0:00:00
+            </div>
+
+            <div class="info-item">
+                <span class="info-label">主机名:</span> THINKBOOKX
+            </div>
+
+        </div>
+        <div class="footer">
+            <p>此邮件由 TaskNya 自动发送</p>
+        </div>
+    </div>
+</body>
+</html>

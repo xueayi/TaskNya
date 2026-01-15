@@ -1,12 +1,33 @@
+email:
+  enabled: true
+  footer: 此邮件由 TaskNya 自动发送
+  include_duration: true
+  include_end_time: true
+  include_gpu_info: true
+  include_hostname: true
+  include_method: true
+  include_project_name: true
+  include_report_actions: true
+  include_report_details: true
+  include_report_summary: true
+  include_start_time: true
+  recipient: ''
+  sender: ''
+  smtp_password: ''
+  smtp_port: 465
+  smtp_server: smtp.qq.com
+  smtp_user: ''
+  title: 🎉 TaskNya 任务完成通知
+  use_ssl: true
 generic_webhook:
   anime_quote_enabled: true
   body: "{\n  \"content\": \"[ ${project_name} ]\\n----------------------------\\\
     n触发方式: ${method}\\n触发详情: ${detail}\\n----------------------------\\n[ 数据统计 ]\\\
     n报告统计: ${report_summary}\\n变更列表: ${report_change_list}\\n提示: ${report_actions}\\\
-    n----------------------------\\n详情查看: https://xxxx.xxxx.xxxx:xxxx\\\
-    n\\n${anime_quote}\\n[ 来自 XiaoXue-TaskNya 推送 ]\",\n  \"umo\": \"飘雪:GroupMessage:xxxxxxxx\"\
-    ,\n  \"message_type\": \"text\"\n}"
-  enabled: true
+    n----------------------------\\n详情查看: https://xxxx.xxxx.xxxx:xxxx\\n\\n${anime_quote}\\\
+    n[ 来自 XiaoXue-TaskNya 推送 ]\",\n  \"umo\": \"飘雪:GroupMessage:xxxxxxxx\",\n  \"\
+    message_type\": \"text\"\n}"
+  enabled: false
   headers:
     Authorization: Bearer xxxxxxxx
     Content-Type: application/json
@@ -15,10 +36,10 @@ generic_webhook:
   timeout: 10
   url: http://xxxx.xxx.xxxx:10010/send
 monitor:
-  check_directory_action_keywords: 
+  check_directory_action_keywords:
     准备压制视频了哦(๑•̀ㅂ•́)ﻭ✧:
     - 无字幕
-    压制视频已上传:
+    压制视频已上传(◦˙▽˙◦):
     - x264
     字幕准备就绪ヾ(≧▽≦*)o:
     - 已校
@@ -35,18 +56,18 @@ monitor:
   check_directory_detect_added: true
   check_directory_detect_modified: false
   check_directory_detect_removed: false
-  check_directory_enabled: true
-  check_directory_exclude_keywords: 
+  check_directory_enabled: false
+  check_directory_exclude_keywords:
   - 年报
   - 测试用素材
   - 往期周报
   - 视频模板
   check_directory_include_folders: false
-  check_directory_path: D:\User\Downloads\
+  check_directory_path: C:\Users\
   check_directory_recheck_delay: 20
   check_directory_report_path: ''
-  check_file_detect_deletion: false
-  check_file_enabled: false
+  check_file_detect_deletion: true
+  check_file_enabled: true
   check_file_path: /tmp/test_file.txt
   check_file_recheck_delay: 0
   check_gpu_power_consecutive_checks: 3
@@ -55,7 +76,7 @@ monitor:
   check_gpu_power_threshold: 50.0
   check_gpu_power_trigger_mode: below
   check_interval: 60
-  check_log_enabled: false
+  check_log_enabled: true
   check_log_markers:
   - 完成
   - done
@@ -66,7 +87,7 @@ monitor:
   timeout: 0
 webhook:
   color: green
-  enabled: false
+  enabled: true
   footer: 测试消息
   include_duration: true
   include_duration_title: 耗时
@@ -80,6 +101,9 @@ webhook:
   include_method_title: 方式
   include_project_name: true
   include_project_name_title: 项目
+  include_report_actions: true
+  include_report_details: true
+  include_report_summary: true
   include_start_time: true
   include_start_time_title: 开始
   title: 测试通知
