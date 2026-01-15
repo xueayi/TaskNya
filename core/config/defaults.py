@@ -75,6 +75,11 @@ DEFAULT_CONFIG = {
 
         "include_gpu_info": True,
         "include_gpu_info_title": "GPU信息",
+        
+        # 目录监控报告显示选项
+        "include_report_summary": True,    # 显示报告摘要统计
+        "include_report_details": True,    # 显示详细文件列表
+        "include_report_actions": True,    # 显示建议操作
 
         "footer": "此消息由TaskNya发送"
     },
@@ -89,6 +94,34 @@ DEFAULT_CONFIG = {
         "retry_count": 0,  # 重试次数 0-5
         "timeout": 10,  # 请求超时（秒）
         "anime_quote_enabled": False,  # 是否在消息中追加二次元语录
+    },
+    
+    # 邮件通知配置
+    "email": {
+        "enabled": False,
+        "smtp_server": "smtp.qq.com",
+        "smtp_port": 465,
+        "smtp_user": "",
+        "smtp_password": "",  # 授权码或密码
+        "sender": "",         # 发件人地址，通常同 smtp_user
+        "recipient": "",      # 收件人地址
+        "use_ssl": True,
+        "title": "🎉 TaskNya 任务完成通知",
+        "footer": "此邮件由 TaskNya 自动发送",
+        
+        # 内容显示选项(与webhook共享MessageBuilder配置)
+        "include_project_name": True,
+        "include_start_time": True,
+        "include_end_time": True,
+        "include_method": True,
+        "include_duration": True,
+        "include_hostname": True,
+        "include_gpu_info": True,
+        
+        # 目录监控报告显示选项
+        "include_report_summary": True,    # 显示报告摘要统计
+        "include_report_details": True,    # 显示详细文件列表
+        "include_report_actions": True,    # 显示建议操作
     }
 }
 

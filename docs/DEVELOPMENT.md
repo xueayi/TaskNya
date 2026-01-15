@@ -121,19 +121,19 @@ sequenceDiagram
 
 ### 2. 添加新的通知器 (Notifier)
 
-如果你想支持邮件、Telegram 等非 Webhook 方式：
+如果你想支持 Telegram 等新方式：
 
-1.  **实现逻辑**：在 `core/notifier/` 下新建类，继承 `BaseNotifier`。
+1.  **实现逻辑**：在 `core/notifier/` 下新建类，继承 `BaseNotifier`。参考 `EmailNotifier` 的实现。
     ```python
-    class EmailNotifier(BaseNotifier):
+    class MyNewNotifier(BaseNotifier):
         def send(self, message: dict) -> bool:
-            # 使用 smtplib 发送邮件
+            # 实现你的发送逻辑
             return True
     ```
 
 2.  **集成到发送链路**：
     - 在 `core/notifier/__init__.py` 中导出。
-    - 在 `main.py` 或 Web 端启动逻辑中配置并调用。目前项目主要通过 `WebhookNotifier` 配合 `MessageBuilder` 处理。
+    - 在 `main.py` 中像 `_email_notifier` 一样进行初始化和调用。
 
 ### 3. Web UI 界面扩展
 
