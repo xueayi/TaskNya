@@ -189,23 +189,23 @@
                                         <i class="bi bi-plus-circle"></i> 添加检测方法
                                     </button>
                                     <ul class="dropdown-menu" id="detectionDropdown">
-                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_file_check', 'file_check_switch'); return false;">
+                                        <li><a class="dropdown-item" href="#" onclick="addModuleCard('file_check'); return false;">
                                             <i class="bi bi-file-earmark-check"></i> 单文件感知</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_log_check', 'log_check_switch'); return false;">
+                                        <li><a class="dropdown-item" href="#" onclick="addModuleCard('log_check'); return false;">
                                             <i class="bi bi-journal-text"></i> 日志检查</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_gpu_check', 'gpu_check_switch'); return false;">
+                                        <li><a class="dropdown-item" href="#" onclick="addModuleCard('gpu_check'); return false;">
                                             <i class="bi bi-gpu-card"></i> GPU功耗检查</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_directory_check', 'directory_check_switch'); return false;">
+                                        <li><a class="dropdown-item" href="#" onclick="addModuleCard('directory_check'); return false;">
                                             <i class="bi bi-folder2-open"></i> 多文件感知</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_http_check', 'check_http_enabled_switch'); return false;">
+                                        <li><a class="dropdown-item" href="#" onclick="addModuleCard('http_check'); return false;">
                                             <i class="bi bi-globe"></i> HTTP轮询检测</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_api_trigger', 'check_api_enabled_switch'); return false;">
+                                        <li><a class="dropdown-item" href="#" onclick="addModuleCard('api_trigger'); return false;">
                                             <i class="bi bi-broadcast"></i> API被动触发</a></li>
                                     </ul>
                                 </div>
                             </div>
                             <!-- 单文件感知配置 -->
-                            <div class="card mb-4" id="card_file_check">
+                            <div class="card mb-4" id="card_file_check" data-module-type="file_check">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="file_check_switch"
@@ -215,8 +215,8 @@
                                             <i class="bi bi-file-earmark-check"></i> 单文件感知
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
-                                        onclick="removeModuleCard('card_file_check', 'file_check_switch')" title="移除">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                        onclick="removeModuleCard(this)" title="移除">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -250,7 +250,7 @@
                             </div>
 
                             <!-- 日志检查配置 -->
-                            <div class="card mb-4" id="card_log_check">
+                            <div class="card mb-4" id="card_log_check" data-module-type="log_check">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="log_check_switch"
@@ -260,8 +260,8 @@
                                             <i class="bi bi-journal-text"></i> 日志检查
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
-                                        onclick="removeModuleCard('card_log_check', 'log_check_switch')" title="移除">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                        onclick="removeModuleCard(this)" title="移除">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -296,7 +296,7 @@
                             </div>
 
                             <!-- GPU功耗检查配置 -->
-                            <div class="card mb-4" id="card_gpu_check">
+                            <div class="card mb-4" id="card_gpu_check" data-module-type="gpu_check">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="gpu_check_switch"
@@ -306,8 +306,8 @@
                                             <i class="bi bi-gpu-card"></i> GPU功耗检查
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
-                                        onclick="removeModuleCard('card_gpu_check', 'gpu_check_switch')" title="移除">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                        onclick="removeModuleCard(this)" title="移除">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -364,7 +364,7 @@
                             </div>
 
                             <!-- 多文件感知（目录监控）配置 -->
-                            <div class="card mb-4" id="card_directory_check">
+                            <div class="card mb-4" id="card_directory_check" data-module-type="directory_check">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="directory_check_switch"
@@ -374,8 +374,8 @@
                                             <i class="bi bi-folder2-open"></i> 多文件感知（目录监控）
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
-                                        onclick="removeModuleCard('card_directory_check', 'directory_check_switch')" title="移除">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                        onclick="removeModuleCard(this)" title="移除">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -496,7 +496,7 @@
                             </div>
 
                             <!-- HTTP 轮询检测配置 -->
-                            <div class="card mb-4" id="card_http_check">
+                            <div class="card mb-4" id="card_http_check" data-module-type="http_check">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="check_http_enabled_switch"
@@ -505,8 +505,8 @@
                                             <i class="bi bi-globe"></i> HTTP 轮询检测
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
-                                        onclick="removeModuleCard('card_http_check', 'check_http_enabled_switch')" title="移除">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                        onclick="removeModuleCard(this)" title="移除">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -574,7 +574,7 @@
                             </div>
 
                             <!-- API 被动触发配置 -->
-                            <div class="card mb-4" id="card_api_trigger">
+                            <div class="card mb-4" id="card_api_trigger" data-module-type="api_trigger">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="check_api_enabled_switch"
@@ -583,8 +583,8 @@
                                             <i class="bi bi-broadcast"></i> API 被动触发
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
-                                        onclick="removeModuleCard('card_api_trigger', 'check_api_enabled_switch')" title="移除">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                        onclick="removeModuleCard(this)" title="移除">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -814,20 +814,20 @@
                                         <i class="bi bi-plus-circle"></i> 添加通知渠道
                                     </button>
                                     <ul class="dropdown-menu" id="notificationDropdown">
-                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_webhook', 'webhook_switch'); return false;">
+                                        <li><a class="dropdown-item" href="#" onclick="addModuleCard('webhook'); return false;">
                                             <i class="bi bi-bell"></i> 飞书机器人</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_email', 'email_switch'); return false;">
+                                        <li><a class="dropdown-item" href="#" onclick="addModuleCard('email'); return false;">
                                             <i class="bi bi-envelope"></i> 邮件通知</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_wecom', 'wecom_switch'); return false;">
+                                        <li><a class="dropdown-item" href="#" onclick="addModuleCard('wecom'); return false;">
                                             <i class="bi bi-wechat"></i> 企业微信</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_generic_webhook', 'generic_webhook_switch'); return false;">
+                                        <li><a class="dropdown-item" href="#" onclick="addModuleCard('generic_webhook'); return false;">
                                             <i class="bi bi-link-45deg"></i> 通用 Webhook</a></li>
                                     </ul>
                                 </div>
                             </div>
 
                             <!-- Webhook配置 -->
-                            <div class="card mb-4" id="card_webhook">
+                            <div class="card mb-4" id="card_webhook" data-module-type="webhook">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="webhook_switch"
@@ -836,8 +836,8 @@
                                             <i class="bi bi-bell"></i> 飞书机器人通知
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
-                                        onclick="removeModuleCard('card_webhook', 'webhook_switch')" title="移除">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                        onclick="removeModuleCard(this)" title="移除">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -925,7 +925,7 @@
                             </div>
 
                             <!-- 邮件通知配置 -->
-                            <div class="card mb-4" id="card_email">
+                            <div class="card mb-4" id="card_email" data-module-type="email">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="email_switch"
@@ -934,8 +934,8 @@
                                             <i class="bi bi-envelope"></i> 邮件通知
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
-                                        onclick="removeModuleCard('card_email', 'email_switch')" title="移除">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                        onclick="removeModuleCard(this)" title="移除">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -1032,7 +1032,7 @@
                             </div>
 
                             <!-- 企业微信通知配置 -->
-                            <div class="card mb-4" id="card_wecom">
+                            <div class="card mb-4" id="card_wecom" data-module-type="wecom">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="wecom_switch"
@@ -1041,8 +1041,8 @@
                                             <i class="bi bi-wechat"></i> 企业微信通知
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
-                                        onclick="removeModuleCard('card_wecom', 'wecom_switch')" title="移除">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                        onclick="removeModuleCard(this)" title="移除">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -1116,7 +1116,7 @@
                             </div>
 
                             <!-- 通用 Webhook 配置 -->
-                            <div class="card mb-4" id="card_generic_webhook">
+                            <div class="card mb-4" id="card_generic_webhook" data-module-type="generic_webhook">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="generic_webhook_switch"
@@ -1126,8 +1126,8 @@
                                             <i class="bi bi-link-45deg"></i> 通用 Webhook
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
-                                        onclick="removeModuleCard('card_generic_webhook', 'generic_webhook_switch')" title="移除">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                        onclick="removeModuleCard(this)" title="移除">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
