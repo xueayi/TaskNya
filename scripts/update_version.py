@@ -52,14 +52,4 @@ if __name__ == "__main__":
         f.write(target_version + '\n')
     print(f"Updated VERSION file to {target_version}")
 
-    files_to_update = [
-        os.path.join(base_dir, 'app', 'templates', 'index.html'),
-    ]
-
-    success = True
-    for file in files_to_update:
-        if not update_version(file, target_version):
-            success = False
-    
-    if not success:
-        sys.exit(1)
+    print(f"Version {target_version} written to VERSION file. Templates use dynamic reading.")
