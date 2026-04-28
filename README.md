@@ -1,6 +1,6 @@
 <div align="center">
 
-# TaskNya - 实时任务监控通知系统
+# TaskNya - 通用监控与通知系统
 
 [项目主页](https://github.com/xueayi/TaskNya) | [用户指南](docs/user_guide.md) | [开发手册](docs/DEVELOPMENT.md) | [API 参考](docs/api_reference.md) | [多平台通知配置](docs/notification_setup.md) | [内联变量参考](docs/inline_variables.md)
 
