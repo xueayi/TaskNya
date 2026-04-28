@@ -43,6 +43,8 @@
 - [x] **Web 管理后台**：提供实时配置、日志查看、任务控制等图形化操作。
 - [x] **Docker 支持**：提供官方 Dockerfile 与 Compose 配置，支持一键部署。
 - [x] **跨平台适配**：支持 Windows / Linux / macOS。
+- [x] **HTTP/API 检测**：支持主动 HTTP 轮询和被动 API 触发端口。
+- [x] **CLI 手动触发**：`python main.py --trigger` 跳过检测直接发送通知。
 - [ ] 更多触发条件预设 (CPU/内存/磁盘)
 
 ---
@@ -51,12 +53,12 @@
 
 ### Windows (EXE方式)
 1. 从 [Release](https://github.com/xueayi/TaskNya/releases) 下载 `TaskNya.exe`。
-2. 双击运行，浏览器访问 `http://localhost:5000`。
+2. 双击运行，浏览器访问 `http://localhost:9870`。
 
 ### Docker 方式
 ```bash
 docker pull xueayis/tasknya:latest
-docker run -d -p 5000:5000 -v $(pwd)/logs:/app/logs xueayis/tasknya:latest
+docker run -d -p 9870:9870 -v $(pwd)/logs:/app/logs xueayis/tasknya:latest
 ```
 
 ### Python 源码方式
@@ -65,7 +67,18 @@ pip install -r requirements.txt
 python webui.py
 ```
 
-浏览器访问：`http://localhost:5000`
+浏览器访问：`http://localhost:9870`
+
+### 命令行快速启动（无需 Web UI）
+
+```bash
+python main.py                                    # 启动监控（默认配置）
+python main.py --trigger                          # 手动触发通知（测试用）
+python main.py --trigger --message "训练完成"      # 附带自定义消息
+bash run_monitor.sh                               # 交互选择配置并启动
+```
+
+详见 [CLI 使用指南](docs/cli_usage.md)
 
 ---
 
@@ -78,6 +91,7 @@ python webui.py
 - 接口定义：[`docs/api_reference.md`](docs/api_reference.md)
 - 多平台通知配置：[`docs/notification_setup.md`](docs/notification_setup.md)
 - 内联变量参考：[`docs/inline_variables.md`](docs/inline_variables.md)
+- CLI 使用指南：[`docs/cli_usage.md`](docs/cli_usage.md)
 
 ---
 

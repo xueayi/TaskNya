@@ -183,8 +183,29 @@
 
                         <!-- 检测方法选项卡 -->
                         <div class="tab-pane fade" id="detection" role="tabpanel" aria-labelledby="detection-tab">
+                            <div class="mb-3">
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-plus-circle"></i> 添加检测方法
+                                    </button>
+                                    <ul class="dropdown-menu" id="detectionDropdown">
+                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_file_check', 'file_check_switch'); return false;">
+                                            <i class="bi bi-file-earmark-check"></i> 单文件感知</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_log_check', 'log_check_switch'); return false;">
+                                            <i class="bi bi-journal-text"></i> 日志检查</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_gpu_check', 'gpu_check_switch'); return false;">
+                                            <i class="bi bi-gpu-card"></i> GPU功耗检查</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_directory_check', 'directory_check_switch'); return false;">
+                                            <i class="bi bi-folder2-open"></i> 多文件感知</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_http_check', 'check_http_enabled_switch'); return false;">
+                                            <i class="bi bi-globe"></i> HTTP轮询检测</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_api_trigger', 'check_api_enabled_switch'); return false;">
+                                            <i class="bi bi-broadcast"></i> API被动触发</a></li>
+                                    </ul>
+                                </div>
+                            </div>
                             <!-- 单文件感知配置 -->
-                            <div class="card mb-4">
+                            <div class="card mb-4" id="card_file_check">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="file_check_switch"
@@ -194,6 +215,10 @@
                                             <i class="bi bi-file-earmark-check"></i> 单文件感知
                                         </label>
                                     </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
+                                        onclick="removeModuleCard('card_file_check', 'file_check_switch')" title="移除">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
@@ -225,7 +250,7 @@
                             </div>
 
                             <!-- 日志检查配置 -->
-                            <div class="card mb-4">
+                            <div class="card mb-4" id="card_log_check">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="log_check_switch"
@@ -235,6 +260,10 @@
                                             <i class="bi bi-journal-text"></i> 日志检查
                                         </label>
                                     </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
+                                        onclick="removeModuleCard('card_log_check', 'log_check_switch')" title="移除">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
@@ -256,16 +285,18 @@
                                         </select>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="form-label">触发关键词（每行一个）</label>
-                                        <textarea class="form-control" name="monitor.check_log_markers" rows="3"
-                                            placeholder="例如: Training completed, 训练完成">{{ '\n'.join(config.monitor.check_log_markers) }}</textarea>
+                                        <label class="form-label">触发关键词</label>
+                                        <div id="logMarkerRows"></div>
+                                        <button type="button" class="btn btn-sm btn-outline-success mt-1" onclick="addTagRow('logMarkerRows')">
+                                            <i class="bi bi-plus-circle"></i> 添加关键词
+                                        </button>
                                         <div class="form-text">当日志中出现这些文本时，认为任务已完成</div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- GPU功耗检查配置 -->
-                            <div class="card mb-4">
+                            <div class="card mb-4" id="card_gpu_check">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="gpu_check_switch"
@@ -275,6 +306,10 @@
                                             <i class="bi bi-gpu-card"></i> GPU功耗检查
                                         </label>
                                     </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
+                                        onclick="removeModuleCard('card_gpu_check', 'gpu_check_switch')" title="移除">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -329,7 +364,7 @@
                             </div>
 
                             <!-- 多文件感知（目录监控）配置 -->
-                            <div class="card mb-4">
+                            <div class="card mb-4" id="card_directory_check">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="directory_check_switch"
@@ -339,6 +374,10 @@
                                             <i class="bi bi-folder2-open"></i> 多文件感知（目录监控）
                                         </label>
                                     </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
+                                        onclick="removeModuleCard('card_directory_check', 'directory_check_switch')" title="移除">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
@@ -435,25 +474,149 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label">排除关键词（每行一个）</label>
-                                        <textarea class="form-control" name="monitor.check_directory_exclude_keywords"
-                                            rows="2"
-                                            placeholder="例如: __pycache__, .git, .tmp">{{ '\n'.join(config.monitor.check_directory_exclude_keywords) if config.monitor.check_directory_exclude_keywords else '' }}</textarea>
+                                        <label class="form-label">排除关键词</label>
+                                        <div id="excludeKeywordRows"></div>
+                                        <button type="button" class="btn btn-sm btn-outline-success mt-1" onclick="addTagRow('excludeKeywordRows')">
+                                            <i class="bi bi-plus-circle"></i> 添加
+                                        </button>
                                         <div class="form-text">包含这些关键词的路径将被忽略</div>
                                     </div>
 
                                     <div class="mb-3">
                                         <label class="form-label">操作建议配置</label>
-                                        <textarea class="form-control" id="action_keywords_input"
-                                            name="monitor.check_directory_action_keywords_text" rows="4"
-                                            placeholder="每行一组，格式：建议内容: 关键词1, 关键词2"></textarea>
+                                        <div id="actionKeywordRows"></div>
+                                        <button type="button" class="btn btn-sm btn-outline-success mt-1" onclick="addActionKeywordRow()">
+                                            <i class="bi bi-plus-circle"></i> 添加规则
+                                        </button>
                                         <div class="form-text">
-                                            <strong>格式说明：</strong>每行定义一个操作建议规则<br>
-                                            <strong>格式：</strong><code>建议内容: 关键词1, 关键词2, ...</code>（冒号分隔建议与关键词，逗号分隔多个关键词）<br>
-                                            <strong>示例：</strong><br>
-                                            <code>备份: important, backup</code> → 文件名含 important 或 backup 时建议"备份"<br>
-                                            <code>清理: .tmp, .cache, temp</code> → 文件名含 .tmp/.cache/temp 时建议"清理"
+                                            每行定义一条规则：左侧为建议内容，右侧为触发关键词（逗号分隔）
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- HTTP 轮询检测配置 -->
+                            <div class="card mb-4" id="card_http_check">
+                                <div class="card-header">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" id="check_http_enabled_switch"
+                                            name="monitor.check_http_enabled" {% if config.monitor.check_http_enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="check_http_enabled_switch">
+                                            <i class="bi bi-globe"></i> HTTP 轮询检测
+                                        </label>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
+                                        onclick="removeModuleCard('card_http_check', 'check_http_enabled_switch')" title="移除">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="mb-3">
+                                                <label class="form-label">请求 URL</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-link"></i></span>
+                                                    <input type="text" class="form-control" name="monitor.check_http_url"
+                                                        value="{{ config.monitor.check_http_url }}" placeholder="https://api.example.com/status">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">HTTP 方法</label>
+                                                <select class="form-select" name="monitor.check_http_method">
+                                                    <option value="GET" {% if config.monitor.check_http_method=='GET' %}selected{% endif %}>GET</option>
+                                                    <option value="POST" {% if config.monitor.check_http_method=='POST' %}selected{% endif %}>POST</option>
+                                                    <option value="PUT" {% if config.monitor.check_http_method=='PUT' %}selected{% endif %}>PUT</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">期望状态码</label>
+                                                <input type="number" class="form-control" name="monitor.check_http_expected_status"
+                                                    value="{{ config.monitor.check_http_expected_status }}" placeholder="200">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">请求超时（秒）</label>
+                                                <input type="number" class="form-control" name="monitor.check_http_timeout"
+                                                    value="{{ config.monitor.check_http_timeout }}" placeholder="10">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">请求头 (JSON)</label>
+                                                <input type="text" class="form-control" name="monitor.check_http_headers"
+                                                    value="{{ config.monitor.check_http_headers | tojson if config.monitor.check_http_headers else '{}' }}"
+                                                    placeholder='{"Authorization": "Bearer ..."}'>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">期望关键词</label>
+                                        <div id="httpKeywordRows"></div>
+                                        <button type="button" class="btn btn-sm btn-outline-success mt-1" onclick="addTagRow('httpKeywordRows')">
+                                            <i class="bi bi-plus-circle"></i> 添加关键词
+                                        </button>
+                                        <div class="form-text">响应体包含任一关键词时触发（留空则仅检查状态码）</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">请求体（POST/PUT 时使用）</label>
+                                        <textarea class="form-control" name="monitor.check_http_body" rows="2"
+                                            placeholder='{"key": "value"}'>{{ config.monitor.check_http_body }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- API 被动触发配置 -->
+                            <div class="card mb-4" id="card_api_trigger">
+                                <div class="card-header">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" id="check_api_enabled_switch"
+                                            name="monitor.check_api_enabled" {% if config.monitor.check_api_enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="check_api_enabled_switch">
+                                            <i class="bi bi-broadcast"></i> API 被动触发
+                                        </label>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
+                                        onclick="removeModuleCard('card_api_trigger', 'check_api_enabled_switch')" title="移除">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">监听端口</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-hdd-network"></i></span>
+                                                    <input type="number" class="form-control" name="monitor.check_api_port"
+                                                        value="{{ config.monitor.check_api_port }}" placeholder="9870">
+                                                </div>
+                                                <div class="form-text">CLI 模式下自动监听此端口</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">认证 Token（可选）</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                                    <input type="text" class="form-control" name="monitor.check_api_auth_token"
+                                                        value="{{ config.monitor.check_api_auth_token }}" placeholder="留空则不验证">
+                                                </div>
+                                                <div class="form-text">请求需携带 <code>Authorization: Bearer &lt;token&gt;</code></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-info mb-0" role="alert">
+                                        <i class="bi bi-info-circle"></i>
+                                        启用后，外部系统可通过 <code>POST http://&lt;host&gt;:&lt;port&gt;/trigger</code> 触发通知。
+                                        Web UI 模式下使用 <code>POST /api/trigger</code>。
                                     </div>
                                 </div>
                             </div>
@@ -645,8 +808,26 @@
                                 </div>
                             </div>
 
+                            <div class="mb-3">
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-plus-circle"></i> 添加通知渠道
+                                    </button>
+                                    <ul class="dropdown-menu" id="notificationDropdown">
+                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_webhook', 'webhook_switch'); return false;">
+                                            <i class="bi bi-bell"></i> 飞书机器人</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_email', 'email_switch'); return false;">
+                                            <i class="bi bi-envelope"></i> 邮件通知</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_wecom', 'wecom_switch'); return false;">
+                                            <i class="bi bi-wechat"></i> 企业微信</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="showModuleCard('card_generic_webhook', 'generic_webhook_switch'); return false;">
+                                            <i class="bi bi-link-45deg"></i> 通用 Webhook</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+
                             <!-- Webhook配置 -->
-                            <div class="card mb-4">
+                            <div class="card mb-4" id="card_webhook">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="webhook_switch"
@@ -655,6 +836,10 @@
                                             <i class="bi bi-bell"></i> 飞书机器人通知
                                         </label>
                                     </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
+                                        onclick="removeModuleCard('card_webhook', 'webhook_switch')" title="移除">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
@@ -724,11 +909,23 @@
                                             <a href="https://github.com/xueayi/TaskNya/blob/main/docs/inline_variables.md" target="_blank">查看可用变量 &rarr;</a>
                                         </div>
                                     </div>
+                                    <!-- 推送预览 -->
+                                    <div class="mt-3">
+                                        <label class="form-label"><i class="bi bi-eye"></i> 推送预览</label>
+                                        <div id="feishuPreview" class="preview-card">
+                                            <div class="preview-card-header" id="feishuPreviewHeader">
+                                                <span id="feishuPreviewTitle">测试通知</span>
+                                            </div>
+                                            <div class="preview-card-body" id="feishuPreviewBody"></div>
+                                            <hr class="preview-card-hr">
+                                            <div class="preview-card-footer" id="feishuPreviewFooter">测试消息</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- 邮件通知配置 -->
-                            <div class="card mb-4">
+                            <div class="card mb-4" id="card_email">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="email_switch"
@@ -737,6 +934,10 @@
                                             <i class="bi bi-envelope"></i> 邮件通知
                                         </label>
                                     </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
+                                        onclick="removeModuleCard('card_email', 'email_switch')" title="移除">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -831,7 +1032,7 @@
                             </div>
 
                             <!-- 企业微信通知配置 -->
-                            <div class="card mb-4">
+                            <div class="card mb-4" id="card_wecom">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="wecom_switch"
@@ -840,6 +1041,10 @@
                                             <i class="bi bi-wechat"></i> 企业微信通知
                                         </label>
                                     </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
+                                        onclick="removeModuleCard('card_wecom', 'wecom_switch')" title="移除">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
@@ -853,6 +1058,22 @@
                                         <div class="form-text">企业微信群机器人配置详见<a
                                                 href="https://developer.work.weixin.qq.com/document/path/91770"
                                                 target="_blank">官方文档</a></div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">消息标题</label>
+                                                <input type="text" class="form-control" name="wecom.title"
+                                                    value="{{ config.wecom.title }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">页脚信息</label>
+                                                <input type="text" class="form-control" name="wecom.footer"
+                                                    value="{{ config.wecom.footer }}">
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">消息格式</label>
@@ -884,11 +1105,18 @@
                                             <a href="https://github.com/xueayi/TaskNya/blob/main/docs/inline_variables.md" target="_blank">查看可用变量 &rarr;</a>
                                         </div>
                                     </div>
+                                    <!-- 推送预览 -->
+                                    <div class="mt-3">
+                                        <label class="form-label"><i class="bi bi-eye"></i> 推送预览</label>
+                                        <div id="wecomPreview" class="preview-card preview-card-wecom">
+                                            <div class="preview-card-body" id="wecomPreviewBody"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- 通用 Webhook 配置 -->
-                            <div class="card mb-4">
+                            <div class="card mb-4" id="card_generic_webhook">
                                 <div class="card-header">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" class="form-check-input" id="generic_webhook_switch"
@@ -898,6 +1126,10 @@
                                             <i class="bi bi-link-45deg"></i> 通用 Webhook
                                         </label>
                                     </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary float-end"
+                                        onclick="removeModuleCard('card_generic_webhook', 'generic_webhook_switch')" title="移除">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -1066,6 +1298,9 @@
         <script>
             const INITIAL_ACTION_KEYWORDS = {{ config.monitor.check_directory_action_keywords | tojson }};
             const INITIAL_WEBHOOK_BODY = {{ config.generic_webhook.body | tojson }};
+            const INITIAL_LOG_MARKERS = {{ config.monitor.check_log_markers | tojson }};
+            const INITIAL_EXCLUDE_KEYWORDS = {{ config.monitor.check_directory_exclude_keywords | tojson }};
+            const INITIAL_HTTP_KEYWORDS = {{ config.monitor.check_http_expected_keywords | tojson }};
 
             const SAMPLE_VARIABLES = {
                 project_name: "我的训练任务",
@@ -1081,6 +1316,102 @@
                 report_actions: "备份, 部署",
                 anime_quote: "人生就像一盒巧克力，你永远不知道下一颗是什么味道。"
             };
+
+            const FEISHU_COLORS = {
+                green: '#00b42a', blue: '#3370ff', red: '#f53f3f',
+                grey: '#86909c', turquoise: '#14c9c9'
+            };
+
+            function simpleMarkdownToHtml(md) {
+                if (!md) return '';
+                return md
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>')
+                    .replace(/---/g, '<hr style="margin:8px 0;border-color:#e5e6e8;">');
+            }
+
+            function buildDefaultMessagePreview() {
+                const lines = [];
+                const fields = [
+                    {check: 'shared_include_project_name', title: 'webhook.include_project_name_title', sample: 'project_name'},
+                    {check: 'shared_include_start_time', title: 'webhook.include_start_time_title', sample: 'start_time'},
+                    {check: 'shared_include_end_time', title: 'webhook.include_end_time_title', sample: 'end_time'},
+                    {check: 'shared_include_method', title: 'webhook.include_method_title', sample: 'method'},
+                    {check: 'shared_include_duration', title: 'webhook.include_duration_title', sample: 'duration'},
+                    {check: 'shared_include_hostname', title: 'webhook.include_hostname_title', sample: 'hostname'},
+                    {check: 'shared_include_gpu_info', title: 'webhook.include_gpu_info_title', sample: 'gpu_info'},
+                ];
+                fields.forEach(f => {
+                    const checkbox = document.getElementById(f.check);
+                    if (checkbox && checkbox.checked) {
+                        const titleInput = document.querySelector(`[name="${f.title}"]`);
+                        const label = titleInput ? titleInput.value : f.sample;
+                        lines.push(`**${label}**：${SAMPLE_VARIABLES[f.sample]}`);
+                    }
+                });
+                return lines.join('\n');
+            }
+
+            function getPreviewContent(channel) {
+                const switchEl = document.getElementById(channel + '_custom_text_switch');
+                const customEnabled = switchEl && switchEl.checked;
+
+                if (customEnabled) {
+                    const modeEl = document.querySelector(`[name="${channel}.custom_text_mode"]`);
+                    const textEl = document.querySelector(`[name="${channel}.custom_text"]`);
+                    const mode = modeEl ? modeEl.value : 'template';
+                    const customText = textEl ? textEl.value : '';
+
+                    const replaced = customText.replace(/\$\{(\w+)\}/g, (m, name) =>
+                        SAMPLE_VARIABLES[name] !== undefined ? SAMPLE_VARIABLES[name] : m);
+
+                    if (mode === 'template') {
+                        return replaced;
+                    } else {
+                        return buildDefaultMessagePreview() + '\n\n' + replaced;
+                    }
+                }
+                return buildDefaultMessagePreview();
+            }
+
+            function updateFeishuPreview() {
+                const titleEl = document.querySelector('[name="webhook.title"]');
+                const colorEl = document.querySelector('[name="webhook.color"]');
+                const footerEl = document.querySelector('[name="webhook.footer"]');
+
+                const title = titleEl ? titleEl.value : '通知';
+                const color = colorEl ? colorEl.value : 'green';
+                const footer = footerEl ? footerEl.value : '';
+                const content = getPreviewContent('webhook');
+
+                const headerEl = document.getElementById('feishuPreviewHeader');
+                const titleSpan = document.getElementById('feishuPreviewTitle');
+                const bodyEl = document.getElementById('feishuPreviewBody');
+                const footerDiv = document.getElementById('feishuPreviewFooter');
+
+                if (headerEl) headerEl.style.borderLeftColor = FEISHU_COLORS[color] || FEISHU_COLORS.green;
+                if (titleSpan) titleSpan.textContent = title;
+                if (bodyEl) bodyEl.innerHTML = simpleMarkdownToHtml(content);
+                if (footerDiv) footerDiv.textContent = footer;
+            }
+
+            function updateWecomPreview() {
+                const titleEl = document.querySelector('[name="wecom.title"]');
+                const footerEl = document.querySelector('[name="wecom.footer"]');
+
+                const title = titleEl ? titleEl.value : '';
+                const footer = footerEl ? footerEl.value : '';
+                const content = getPreviewContent('wecom');
+
+                const bodyEl = document.getElementById('wecomPreviewBody');
+                if (bodyEl) {
+                    let html = '';
+                    if (title) html += `<div style="font-weight:600;font-size:1.05em;margin-bottom:8px;">${title}</div>`;
+                    html += simpleMarkdownToHtml(content);
+                    if (footer) html += `<hr style="margin:8px 0;border-color:#e5e6e8;"><div style="color:#999;font-size:0.85em;">${footer}</div>`;
+                    bodyEl.innerHTML = html;
+                }
+            }
 
             let currentJsonMode = 'field';
 
@@ -1121,7 +1452,7 @@
             }
 
             function escapeHtml(str) {
-                return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             }
 
             function buildJsonFromFields() {
@@ -1130,7 +1461,7 @@
                 rows.forEach(row => {
                     const inputs = row.querySelectorAll('input[type="text"]');
                     const k = inputs[0].value.trim();
-                    const v = inputs[1].value;
+                    const v = inputs[1].value.replace(/\\n/g, '\n');
                     if (k) obj[k] = v;
                 });
                 return JSON.stringify(obj, null, 2);
@@ -1147,7 +1478,7 @@
                 container.innerHTML = '';
                 if (typeof obj === 'object' && obj !== null) {
                     Object.entries(obj).forEach(([k, v]) => {
-                        addJsonField(k, typeof v === 'string' ? v : JSON.stringify(v));
+                        addJsonField(k, typeof v === 'string' ? v.replace(/\n/g, '\\n') : JSON.stringify(v));
                     });
                 }
             }
@@ -1185,17 +1516,25 @@
                 return obj;
             }
 
-            // 初始化操作建议文本框
             document.addEventListener('DOMContentLoaded', function () {
-                const textarea = document.getElementById('action_keywords_input');
-                if (textarea && INITIAL_ACTION_KEYWORDS) {
-                    const lines = [];
-                    for (const [action, keywords] of Object.entries(INITIAL_ACTION_KEYWORDS)) {
-                        const keywordStr = Array.isArray(keywords) ? keywords.join(', ') : keywords;
-                        lines.push(`${action}: ${keywordStr}`);
-                    }
-                    textarea.value = lines.join('\n');
+                // 初始化+号输入行
+                if (INITIAL_LOG_MARKERS && INITIAL_LOG_MARKERS.length) {
+                    INITIAL_LOG_MARKERS.forEach(v => addTagRow('logMarkerRows', v));
                 }
+                if (INITIAL_EXCLUDE_KEYWORDS && INITIAL_EXCLUDE_KEYWORDS.length) {
+                    INITIAL_EXCLUDE_KEYWORDS.forEach(v => addTagRow('excludeKeywordRows', v));
+                }
+                if (INITIAL_ACTION_KEYWORDS && typeof INITIAL_ACTION_KEYWORDS === 'object') {
+                    Object.entries(INITIAL_ACTION_KEYWORDS).forEach(([action, keywords]) => {
+                        addActionKeywordRow(action, Array.isArray(keywords) ? keywords.join(', ') : keywords);
+                    });
+                }
+                if (INITIAL_HTTP_KEYWORDS && INITIAL_HTTP_KEYWORDS.length) {
+                    INITIAL_HTTP_KEYWORDS.forEach(v => addTagRow('httpKeywordRows', v));
+                }
+
+                // 初始化模块可见性
+                initModuleVisibility();
 
                 // 初始化 JSON 编辑器
                 try {
@@ -1213,6 +1552,26 @@
                 if (rawEditor) {
                     rawEditor.addEventListener('input', updateJsonPreview);
                 }
+
+                // 初始化预览
+                updateFeishuPreview();
+                updateWecomPreview();
+
+                // 监听预览相关字段变化
+                ['webhook.title', 'webhook.color', 'webhook.footer', 'webhook.custom_text_mode', 'webhook.custom_text',
+                    'wecom.title', 'wecom.footer', 'wecom.custom_text_mode', 'wecom.custom_text'].forEach(name => {
+                    const el = document.querySelector(`[name="${name}"]`);
+                    if (el) el.addEventListener('input', () => { updateFeishuPreview(); updateWecomPreview(); });
+                });
+                // 监听共享内容选项变化
+                document.querySelectorAll('.shared-content-option').forEach(el => {
+                    el.addEventListener('change', () => { updateFeishuPreview(); updateWecomPreview(); });
+                });
+                // 监听自定义文本开关
+                ['webhook_custom_text_switch', 'wecom_custom_text_switch'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener('change', () => { updateFeishuPreview(); updateWecomPreview(); });
+                });
             });
         </script>
         <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>

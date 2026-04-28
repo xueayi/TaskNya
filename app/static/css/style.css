@@ -194,4 +194,123 @@ body {
         bottom: 1rem;
         right: 1rem;
     }
+}
+
+/* 卡片悬停效果 */
+.card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, 
+                background-color var(--transition-speed), 
+                border-color var(--transition-speed);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* 按钮悬停效果 */
+.btn {
+    transition: all 0.15s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* 表单 switch 动画 */
+.form-check-input {
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+/* 标签栏指示条 */
+.nav-tabs .nav-link {
+    position: relative;
+    padding-bottom: 0.75rem;
+}
+
+.nav-tabs .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background-color: var(--primary-color, #0d6efd);
+    border-radius: 1px;
+}
+
+/* 推送预览卡片 - 飞书 */
+.preview-card {
+    border: 1px solid var(--card-border, #dee2e6);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 0.9em;
+    background-color: var(--card-bg, #fff);
+}
+
+.preview-card-header {
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 1em;
+    border-left: 4px solid #00b42a;
+    background-color: var(--card-header-bg, #f8f9fa);
+}
+
+.preview-card-body {
+    padding: 12px 14px;
+    line-height: 1.6;
+}
+
+.preview-card-hr {
+    margin: 0 14px;
+    border-color: var(--card-border, #e5e6e8);
+}
+
+.preview-card-footer {
+    padding: 8px 14px;
+    color: #999;
+    font-size: 0.85em;
+}
+
+/* 推送预览卡片 - 企业微信 */
+.preview-card-wecom {
+    border-left: 3px solid #07c160;
+}
+
+/* +号输入行 */
+.tag-input-row {
+    margin-bottom: 4px;
+}
+
+.tag-input-row .form-control {
+    font-size: 0.875rem;
+}
+
+/* 下拉按钮区域 */
+.dropdown .dropdown-item i {
+    margin-right: 6px;
+    width: 16px;
+    text-align: center;
+}
+
+/* 配置标签页内容间距 */
+.tab-content {
+    padding-top: 0.5rem;
+}
+
+/* 移除按钮在卡片头部的位置 */
+.card-header .float-end {
+    margin-top: -2px;
+}
+
+/* 响应式优化 */
+@media (max-width: 576px) {
+    .col-md-4, .col-md-6, .col-md-8 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .preview-card {
+        font-size: 0.85em;
+    }
 } 

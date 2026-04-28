@@ -142,7 +142,7 @@ def create_app():
         配置好的 Flask 应用实例
     """
     # 在函数内部导入，避免循环导入
-    from app.routes import config_bp, monitor_bp
+    from app.routes import config_bp, monitor_bp, trigger_bp
     from app.routes.monitor_routes import init_monitor_state
     from app.websocket import WebSocketManager
     
@@ -164,6 +164,7 @@ def create_app():
     # 注册蓝图
     app.register_blueprint(config_bp)
     app.register_blueprint(monitor_bp)
+    app.register_blueprint(trigger_bp)
     
     # 配置管理器
     config_manager = ConfigManager(config_dir=CONFIG_DIR)

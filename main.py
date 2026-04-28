@@ -173,6 +173,30 @@ class TrainingMonitor:
         
         logger.info(f"开始监控任务进程: {project_name}")
         
+        if self.config['monitor'].get('check_api_enabled', False):
+            from core.monitor.api_trigger import ApiTriggerServer
+            
+            api_port = self.config['monitor'].get('check_api_port', 9870)
+            api_token = self.config['monitor'].get('check_api_auth_token', '')
+            
+            def on_trigger(payload):
+                """API 触发回调"""
+                end_time = datetime.now()
+                info = self._message_builder.build_training_info(
+                    start_time=self.start_time,
+                    end_time=end_time,
+                    project_name=payload.get(
+                        'project_name', self.config['monitor']['project_name']
+                    ),
+                    method="API触发",
+                    detail=payload.get('message', 'API 被动触发通知'),
+                    gpu_info=None,
+                )
+                self.send_notification(info)
+            
+            _api_server = ApiTriggerServer(api_port, api_token, on_trigger)
+            _api_server.start()
+        
         elapsed_time = 0
         while not self.should_stop():
             flag, method, detail = self.is_training_complete()
@@ -268,8 +292,38 @@ def main():
         help="配置文件路径（YAML格式）",
         default=None
     )
+    parser.add_argument(
+        "--trigger",
+        action="store_true",
+        help="跳过监控，直接触发一次通知（用于测试通知渠道）",
+    )
+    parser.add_argument(
+        "--message",
+        type=str,
+        default=None,
+        help="手动触发时附带的自定义消息",
+    )
     
     args = parser.parse_args()
+    
+    if args.trigger:
+        monitor = TrainingMonitor(config_path=args.config)
+        now = datetime.now()
+        training_info = monitor._message_builder.build_training_info(
+            start_time=now,
+            end_time=now,
+            project_name=monitor.config['monitor']['project_name'],
+            method="手动触发",
+            detail=args.message or "CLI 手动触发通知",
+            gpu_info=None
+        )
+        logger.info("手动触发通知...")
+        success = monitor.send_notification(training_info)
+        if success:
+            logger.info("通知发送成功")
+        else:
+            logger.warning("部分或全部通知发送失败")
+        return
     
     monitor = TrainingMonitor(config_path=args.config)
     monitor.start_monitoring()

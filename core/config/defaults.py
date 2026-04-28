@@ -52,6 +52,21 @@ DEFAULT_CONFIG = {
         "check_directory_detect_removed": False,  # 检测删除
         "check_directory_detect_modified": False, # 检测修改（默认关闭，防噪）
         "check_directory_continuous_mode": True,  # 持续监控模式：触发通知后继续运行
+        
+        # HTTP 轮询检测
+        "check_http_enabled": False,
+        "check_http_url": "",
+        "check_http_method": "GET",
+        "check_http_headers": {},
+        "check_http_body": "",
+        "check_http_expected_status": 200,
+        "check_http_expected_keywords": [],
+        "check_http_timeout": 10,
+        
+        # API 被动触发
+        "check_api_enabled": False,
+        "check_api_port": 9870,
+        "check_api_auth_token": "",
     },
     
     "webhook": {
@@ -109,6 +124,8 @@ DEFAULT_CONFIG = {
     "wecom": {
         "enabled": False,
         "url": "",
+        "title": "任务完成通知",
+        "footer": "此消息由 TaskNya 发送",
         "msg_type": "markdown",
         "custom_text_enabled": False,
         "custom_text_mode": "template",

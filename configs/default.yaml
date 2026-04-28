@@ -39,6 +39,9 @@ generic_webhook:
   timeout: 10
   url: http://xxxx.xxx.xxxx:10010/send
 monitor:
+  check_api_auth_token: ''
+  check_api_enabled: false
+  check_api_port: 9870
   check_directory_action_keywords:
     准备压制视频了哦(๑•̀ㅂ•́)ﻭ✧:
     - 无字幕
@@ -78,6 +81,14 @@ monitor:
   check_gpu_power_gpu_ids: all
   check_gpu_power_threshold: 50.0
   check_gpu_power_trigger_mode: below
+  check_http_body: ''
+  check_http_enabled: false
+  check_http_expected_keywords: []
+  check_http_expected_status: 200
+  check_http_headers: {}
+  check_http_method: GET
+  check_http_timeout: 10
+  check_http_url: ''
   check_interval: 60
   check_log_enabled: true
   check_log_markers:
@@ -119,6 +130,7 @@ wecom:
   custom_text_enabled: false
   custom_text_mode: template
   enabled: false
+  footer: 此消息由 TaskNya 发送
   include_duration: true
   include_duration_title: 耗时
   include_end_time: true
@@ -137,4 +149,5 @@ wecom:
   include_start_time: true
   include_start_time_title: 开始
   msg_type: markdown
+  title: 任务完成通知
   url: ''

@@ -22,7 +22,7 @@ def wecom_config_base():
         "custom_text_enabled": False,
         "custom_text_mode": "template",
         "custom_text": "",
-        "title": "测试通知",
+        "title": "",
         "include_project_name": True,
         "include_project_name_title": "项目",
         "include_start_time": True,
@@ -37,7 +37,7 @@ def wecom_config_base():
         "include_hostname_title": "主机",
         "include_gpu_info": False,
         "include_gpu_info_title": "GPU",
-        "footer": "测试消息",
+        "footer": "",
     }
 
 
@@ -223,3 +223,24 @@ class TestWeComNotifier:
         assert notifier.send(training_info) is True
         content = _decode_post_body(mock_post)["markdown"]["content"]
         assert content == "测试项目|test-host|2:00:00|文件检测"
+
+    @patch("core.notifier.wecom_notifier.requests.post")
+    def test_wecom_title_footer_markdown(
+        self, mock_post, wecom_config_base, training_info
+    ):
+        """markdown 模式下标题与页脚包装"""
+        cfg = {
+            **wecom_config_base,
+            "title": "任务完成通知",
+            "footer": "来自 TaskNya",
+        }
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {"errcode": 0}
+        mock_post.return_value = mock_resp
+
+        notifier = WeComNotifier(cfg)
+        assert notifier.send(training_info) is True
+        content = _decode_post_body(mock_post)["markdown"]["content"]
+        assert content.startswith("## 任务完成通知\n\n")
+        assert "来自 TaskNya" in content

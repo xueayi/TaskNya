@@ -31,6 +31,8 @@ class WeComNotifier(BaseNotifier):
     def __init__(self, wecom_config: Dict[str, Any]):
         self._enabled = wecom_config.get('enabled', False)
         self.url = wecom_config.get('url', '')
+        self.title = wecom_config.get('title', '任务完成通知')
+        self.footer = wecom_config.get('footer', '此消息由 TaskNya 发送')
         self.msg_type = wecom_config.get('msg_type', 'markdown')
         self.custom_text_enabled = wecom_config.get('custom_text_enabled', False)
         self.custom_text_mode = wecom_config.get('custom_text_mode', 'template')
@@ -82,12 +84,25 @@ class WeComNotifier(BaseNotifier):
             custom = self._replace_variables(self.custom_text, context)
 
             if self.custom_text_mode == 'template':
-                return custom
+                content = custom
             else:
                 default_content = self.message_builder.build_message_content(training_info)
-                return default_content + "\n\n" + custom
+                content = default_content + "\n\n" + custom
         else:
-            return self.message_builder.build_message_content(training_info)
+            content = self.message_builder.build_message_content(training_info)
+
+        if self.msg_type == 'markdown':
+            if self.title:
+                content = f"## {self.title}\n\n{content}"
+            if self.footer:
+                content = f"{content}\n\n---\n> {self.footer}"
+        else:
+            if self.title:
+                content = f"【{self.title}】\n\n{content}"
+            if self.footer:
+                content = f"{content}\n\n{self.footer}"
+
+        return content
 
     def _build_wecom_message(self, content: str) -> Dict[str, Any]:
         if self.msg_type == 'text':

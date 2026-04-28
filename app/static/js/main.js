@@ -20,8 +20,8 @@ function getFormData() {
     formData.forEach((value, key) => {
         const [section, field] = key.split('.');
         if (section === 'monitor') {
-            if (key === 'monitor.check_log_markers' || key === 'monitor.check_directory_exclude_keywords') {
-                config.monitor[field] = value.split('\n').filter(line => line.trim());
+            if (key === 'monitor.check_log_markers' || key === 'monitor.check_directory_exclude_keywords' || key === 'monitor.check_directory_action_keywords_text') {
+                return;
             } else if (key === 'monitor.timeout') {
                 config.monitor[field] = (value === 'None' || value === '') ? null : value.trim();
             } else if (key.includes('enabled')) {
@@ -31,6 +31,14 @@ function getFormData() {
             } else if (key === 'monitor.check_gpu_power_consecutive_checks') {
                 const num = parseInt(value);
                 config.monitor[field] = isNaN(num) ? null : num;
+            } else if (field === 'check_http_expected_status' || field === 'check_http_timeout' || field === 'check_api_port') {
+                config.monitor[field] = parseInt(value) || 0;
+            } else if (field === 'check_http_headers') {
+                try {
+                    config.monitor[field] = JSON.parse(value || '{}');
+                } catch (e) {
+                    config.monitor[field] = {};
+                }
             } else if (key.includes('interval') || field === 'logprint' || key.includes('delay')) {
                 config.monitor[field] = value.trim() || null;
             } else if (key === 'monitor.check_log_mode') {
@@ -74,6 +82,11 @@ function getFormData() {
             }
         }
     });
+
+    config.monitor['check_log_markers'] = collectTagRows('logMarkerRows');
+    config.monitor['check_directory_exclude_keywords'] = collectTagRows('excludeKeywordRows');
+    config.monitor['check_directory_action_keywords'] = collectActionKeywordRows();
+    config.monitor['check_http_expected_keywords'] = collectTagRows('httpKeywordRows');
 
     // 同步共享配置选项: 将webhook的include_*选项同步到email和wecom
     Object.keys(config.webhook).forEach(key => {
@@ -209,8 +222,8 @@ async function loadConfig(filename) {
                 if (input) {
                     if (input.type === 'checkbox') {
                         input.checked = value;
-                    } else if ((key === 'check_log_markers' || key === 'check_directory_exclude_keywords') && Array.isArray(value)) {
-                        input.value = value.join('\n');
+                    } else if (key === 'check_http_headers' && value && typeof value === 'object') {
+                        input.value = JSON.stringify(value);
                     } else {
                         input.value = value === null ? 'None' : value;
                     }
@@ -273,6 +286,42 @@ async function loadConfig(filename) {
                 });
                 toggleCustomTextArea('email');
             }
+
+            // 填充+号输入行
+            const lr = document.getElementById('logMarkerRows');
+            if (lr) {
+                lr.innerHTML = '';
+                if (Array.isArray(config.monitor.check_log_markers)) {
+                    config.monitor.check_log_markers.forEach(v => addTagRow('logMarkerRows', v));
+                }
+            }
+            const er = document.getElementById('excludeKeywordRows');
+            if (er) {
+                er.innerHTML = '';
+                if (Array.isArray(config.monitor.check_directory_exclude_keywords)) {
+                    config.monitor.check_directory_exclude_keywords.forEach(v => addTagRow('excludeKeywordRows', v));
+                }
+            }
+            const ar = document.getElementById('actionKeywordRows');
+            if (ar) {
+                ar.innerHTML = '';
+                const ak = config.monitor.check_directory_action_keywords;
+                if (ak && typeof ak === 'object') {
+                    Object.entries(ak).forEach(([action, keywords]) => {
+                        addActionKeywordRow(action, Array.isArray(keywords) ? keywords.join(', ') : keywords);
+                    });
+                }
+            }
+            const hr = document.getElementById('httpKeywordRows');
+            if (hr) {
+                hr.innerHTML = '';
+                if (Array.isArray(config.monitor.check_http_expected_keywords)) {
+                    config.monitor.check_http_expected_keywords.forEach(v => addTagRow('httpKeywordRows', v));
+                }
+            }
+            initModuleVisibility();
+            if (typeof updateFeishuPreview === 'function') updateFeishuPreview();
+            if (typeof updateWecomPreview === 'function') updateWecomPreview();
 
             // 关闭模态框
             const modal = bootstrap.Modal.getInstance(document.getElementById('configListModal'));
@@ -477,28 +526,8 @@ function collectFormData() {
 
         // 根据字段名和类型进行数据转换
         if (section === 'monitor') {
-            if ((field === 'check_log_markers' || field === 'check_directory_exclude_keywords') && input.tagName.toLowerCase() === 'textarea') {
-                value = value.split('\n').filter(line => line.trim());
-            } else if (field === 'check_directory_action_keywords_text') {
-                // 解析操作建议文本到字典
-                const actionKeywords = {};
-                const lines = value.split('\n');
-                lines.forEach(line => {
-                    if (!line.trim()) return;
-                    // 支持中英文冒号
-                    const parts = line.split(/[:：]/);
-                    if (parts.length >= 2) {
-                        const action = parts[0].trim();
-                        const keywordsStr = parts.slice(1).join(':').trim(); // 重新组合后面可能包含冒号的部分
-                        if (action && keywordsStr) {
-                            // 支持中英文逗号
-                            const keywords = keywordsStr.split(/[,，]/).map(k => k.trim()).filter(k => k);
-                            actionKeywords[action] = keywords;
-                        }
-                    }
-                });
-                config.monitor['check_directory_action_keywords'] = actionKeywords;
-                return; // 不设置 _text 字段
+            if (field === 'check_log_markers' || field === 'check_directory_exclude_keywords' || field === 'check_directory_action_keywords_text') {
+                return;
             } else if (field.includes('enabled')) {
                 value = input.checked;
             } else if (field.includes('threshold')) {
@@ -506,6 +535,14 @@ function collectFormData() {
             } else if (field === 'check_gpu_power_consecutive_checks') {
                 const num = parseInt(value);
                 value = isNaN(num) ? null : num;
+            } else if (field === 'check_http_expected_status' || field === 'check_http_timeout' || field === 'check_api_port') {
+                value = parseInt(value) || 0;
+            } else if (field === 'check_http_headers') {
+                try {
+                    value = JSON.parse(value || '{}');
+                } catch (e) {
+                    value = {};
+                }
             } else if (field.includes('interval') || field === 'logprint' || field.includes('delay') || field === 'timeout') {
                 // 时间字段保留原始字符串，后端支持 "1h30m" 等格式
                 value = value.trim() || null;
@@ -560,6 +597,11 @@ function collectFormData() {
         }
     });
 
+    config.monitor['check_log_markers'] = collectTagRows('logMarkerRows');
+    config.monitor['check_directory_exclude_keywords'] = collectTagRows('excludeKeywordRows');
+    config.monitor['check_directory_action_keywords'] = collectActionKeywordRows();
+    config.monitor['check_http_expected_keywords'] = collectTagRows('httpKeywordRows');
+
     return config;
 }
 
@@ -569,4 +611,160 @@ function toggleCustomTextArea(channel) {
     if (checkbox && area) {
         area.style.display = checkbox.checked ? 'block' : 'none';
     }
+}
+
+// === 模块卡片显示/隐藏 ===
+
+function showModuleCard(cardId, switchId) {
+    const card = document.getElementById(cardId);
+    if (card) {
+        card.style.display = 'block';
+        const switchEl = document.getElementById(switchId);
+        if (switchEl) switchEl.checked = true;
+    }
+    updateDropdownMenus();
+}
+
+function removeModuleCard(cardId, switchId) {
+    const card = document.getElementById(cardId);
+    if (card) {
+        card.style.display = 'none';
+        const switchEl = document.getElementById(switchId);
+        if (switchEl) switchEl.checked = false;
+    }
+    updateDropdownMenus();
+}
+
+function updateDropdownMenus() {
+    // 更新检测方法下拉菜单
+    const detectionCards = [
+        {cardId: 'card_file_check', menuText: '单文件感知'},
+        {cardId: 'card_log_check', menuText: '日志检查'},
+        {cardId: 'card_gpu_check', menuText: 'GPU功耗检查'},
+        {cardId: 'card_directory_check', menuText: '多文件感知'},
+        {cardId: 'card_http_check', menuText: 'HTTP轮询检测'},
+        {cardId: 'card_api_trigger', menuText: 'API被动触发'},
+    ];
+    const detDropdown = document.getElementById('detectionDropdown');
+    if (detDropdown) {
+        detDropdown.querySelectorAll('.dropdown-item').forEach((item, i) => {
+            const card = document.getElementById(detectionCards[i].cardId);
+            if (card) {
+                item.style.display = card.style.display === 'none' ? '' : 'none';
+            }
+        });
+    }
+
+    // 更新通知渠道下拉菜单
+    const notifCards = [
+        {cardId: 'card_webhook', menuText: '飞书机器人'},
+        {cardId: 'card_email', menuText: '邮件通知'},
+        {cardId: 'card_wecom', menuText: '企业微信'},
+        {cardId: 'card_generic_webhook', menuText: '通用 Webhook'},
+    ];
+    const notifDropdown = document.getElementById('notificationDropdown');
+    if (notifDropdown) {
+        notifDropdown.querySelectorAll('.dropdown-item').forEach((item, i) => {
+            const card = document.getElementById(notifCards[i].cardId);
+            if (card) {
+                item.style.display = card.style.display === 'none' ? '' : 'none';
+            }
+        });
+    }
+}
+
+function initModuleVisibility() {
+    // 检测方法
+    const detectionModules = [
+        {cardId: 'card_file_check', switchId: 'file_check_switch'},
+        {cardId: 'card_log_check', switchId: 'log_check_switch'},
+        {cardId: 'card_gpu_check', switchId: 'gpu_check_switch'},
+        {cardId: 'card_directory_check', switchId: 'directory_check_switch'},
+        {cardId: 'card_http_check', switchId: 'check_http_enabled_switch'},
+        {cardId: 'card_api_trigger', switchId: 'check_api_enabled_switch'},
+    ];
+    detectionModules.forEach(m => {
+        const card = document.getElementById(m.cardId);
+        const sw = document.getElementById(m.switchId);
+        if (card && sw) {
+            card.style.display = sw.checked ? 'block' : 'none';
+        }
+    });
+
+    // 通知渠道
+    const notifModules = [
+        {cardId: 'card_webhook', switchId: 'webhook_switch'},
+        {cardId: 'card_email', switchId: 'email_switch'},
+        {cardId: 'card_wecom', switchId: 'wecom_switch'},
+        {cardId: 'card_generic_webhook', switchId: 'generic_webhook_switch'},
+    ];
+    notifModules.forEach(m => {
+        const card = document.getElementById(m.cardId);
+        const sw = document.getElementById(m.switchId);
+        if (card && sw) {
+            card.style.display = sw.checked ? 'block' : 'none';
+        }
+    });
+
+    updateDropdownMenus();
+}
+
+// === +号输入行管理 ===
+
+function addTagRow(containerId, value) {
+    value = value || '';
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'input-group input-group-sm mb-1 tag-input-row';
+    row.innerHTML = `
+        <input type="text" class="form-control" value="${escapeHtml(value)}">
+        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    `;
+    container.appendChild(row);
+}
+
+function addActionKeywordRow(action, keywords) {
+    action = action || '';
+    keywords = keywords || '';
+    const container = document.getElementById('actionKeywordRows');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'input-group input-group-sm mb-1 tag-input-row';
+    row.innerHTML = `
+        <input type="text" class="form-control" placeholder="建议内容" value="${escapeHtml(action)}" style="max-width:35%;">
+        <input type="text" class="form-control" placeholder="关键词（逗号分隔）" value="${escapeHtml(keywords)}">
+        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    `;
+    container.appendChild(row);
+}
+
+function collectTagRows(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return [];
+    const values = [];
+    container.querySelectorAll('.tag-input-row input[type="text"]').forEach(input => {
+        const v = input.value.trim();
+        if (v) values.push(v);
+    });
+    return values;
+}
+
+function collectActionKeywordRows() {
+    const container = document.getElementById('actionKeywordRows');
+    if (!container) return {};
+    const result = {};
+    container.querySelectorAll('.tag-input-row').forEach(row => {
+        const inputs = row.querySelectorAll('input[type="text"]');
+        const action = inputs[0].value.trim();
+        const keywordsStr = inputs[1].value.trim();
+        if (action && keywordsStr) {
+            result[action] = keywordsStr.split(/[,，]/).map(k => k.trim()).filter(k => k);
+        }
+    });
+    return result;
 }
