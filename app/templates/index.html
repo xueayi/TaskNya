@@ -615,8 +615,8 @@
                                     </div>
                                     <div class="alert alert-info mb-0" role="alert">
                                         <i class="bi bi-info-circle"></i>
-                                        启用后，外部系统可通过 <code>POST http://&lt;host&gt;:&lt;port&gt;/trigger</code> 触发通知。
-                                        Web UI 模式下使用 <code>POST /api/trigger</code>。
+                                        启用后，外部系统可通过 <code>POST http://&lt;host&gt;:&lt;port&gt;/api/trigger</code> 触发通知。
+                                        Web UI 和 CLI 模式使用相同路径。请求体可选传入 <code>{"message": "...", "project_name": "..."}</code>。
                                     </div>
                                 </div>
                             </div>

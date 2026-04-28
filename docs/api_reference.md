@@ -2,7 +2,7 @@
 
 [项目主页](../README.md) | [用户指南](user_guide.md) | [CLI 使用指南](cli_usage.md) | [开发手册](DEVELOPMENT.md)
 
-> 版本: 1.1.0
+> 版本: 1.2.0
 > 更新日期: 2026-04-28
 
 ---
@@ -115,6 +115,9 @@
 
 跳过检测流程，直接向所有已启用的通知渠道发送通知。适用于 Web UI 手动触发或外部系统集成。
 
+> Web UI 和 CLI 模式使用统一路径 `/api/trigger`，请求体和认证方式完全相同。
+> Web UI 模式下随服务自动可用；CLI 模式需在配置中启用 `check_api_enabled`。
+
 **请求头（可选）:**
 
 ```
@@ -153,7 +156,7 @@ Authorization: Bearer <token>
 **curl 示例:**
 
 ```bash
-# 无认证
+# 触发通知
 curl -X POST http://localhost:9870/api/trigger \
   -H "Content-Type: application/json" \
   -d '{"message": "手动测试"}'
@@ -188,26 +191,14 @@ curl -X POST http://localhost:9870/api/trigger \
 
 当配置中启用 `check_api_enabled` 后，CLI 模式（`main.py`）会在指定端口启动轻量 HTTP 服务，接收外部请求直接触发通知。
 
-- **默认端口**: `9870`（与 Web UI 共用配置项 `check_api_port`）
+- **默认端口**: `9870`（配置项 `check_api_port`）
+- **路径与 Web UI 完全一致**：`/api/trigger`、`/api/health`
 
 ### 3.1 触发通知
 
-#### `POST /trigger`
+#### `POST /api/trigger`
 
-**请求头（可选）:**
-
-```
-Authorization: Bearer <token>
-```
-
-**请求体（可选）:**
-
-```json
-{
-    "message": "任务完成",
-    "project_name": "MyProject"
-}
-```
+请求格式与 [1.3 手动触发通知](#13-手动触发通知) 完全相同。
 
 **响应:**
 
@@ -220,12 +211,12 @@ Authorization: Bearer <token>
 | 状态码 | 含义 |
 | :--- | :--- |
 | 401 | Token 认证失败 |
-| 404 | 路径不存在（仅 `/trigger` 有效） |
+| 404 | 路径不存在 |
 | 500 | 回调执行异常 |
 
 ### 3.2 健康检查
 
-#### `GET /health`
+#### `GET /api/health`
 
 **响应:**
 
@@ -236,16 +227,14 @@ Authorization: Bearer <token>
 **curl 示例:**
 
 ```bash
-# 触发通知
-curl -X POST http://localhost:9870/trigger \
+# 触发通知（CLI 和 Web UI 路径相同）
+curl -X POST http://localhost:9870/api/trigger \
   -H "Content-Type: application/json" \
   -d '{"message": "训练完成"}'
 
 # 健康检查
-curl http://localhost:9870/health
+curl http://localhost:9870/api/health
 ```
-
-> **注意**: CLI 模式的 `/trigger` 路径不含 `/api` 前缀，与 Web UI 模式的 `/api/trigger` 不同。
 
 ---
 
