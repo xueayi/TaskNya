@@ -43,20 +43,22 @@ bash run_monitor.sh --config my.yaml  # 直接指定
 
 ## 被动触发（API 端口）
 
-在配置中启用 `check_api_enabled` 后，CLI 模式自动监听 9870 端口。
+在配置中启用 `check_api_enabled` 后，CLI 模式自动监听指定端口（默认 9870）。路径与 Web UI 模式完全一致。
 
 ```bash
 # 触发通知
-curl -X POST http://localhost:9870/trigger
+curl -X POST http://localhost:9870/api/trigger \
+  -H "Content-Type: application/json" \
+  -d '{"message": "训练完成"}'
 
-# 带认证和自定义消息
-curl -X POST http://localhost:9870/trigger \
+# 带认证
+curl -X POST http://localhost:9870/api/trigger \
   -H "Authorization: Bearer <your-token>" \
   -H "Content-Type: application/json" \
   -d '{"message": "CI/CD 部署完成", "project_name": "MyApp"}'
 
 # 健康检查
-curl http://localhost:9870/health
+curl http://localhost:9870/api/health
 ```
 
 ## Docker

@@ -18,7 +18,7 @@ class TriggerHandler(BaseHTTPRequestHandler):
     """处理触发请求的 HTTP handler"""
 
     def do_POST(self):
-        if self.path != '/trigger':
+        if self.path != '/api/trigger':
             self.send_response(404)
             self.end_headers()
             self.wfile.write(b'{"error": "Not Found"}')
@@ -60,7 +60,7 @@ class TriggerHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """健康检查"""
-        if self.path == '/health':
+        if self.path == '/api/health':
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
@@ -100,7 +100,7 @@ class ApiTriggerServer:
             )
             self._thread.start()
             logger.info("API 触发服务已启动，监听端口: %s", self.port)
-            logger.info("触发地址: POST http://0.0.0.0:%s/trigger", self.port)
+            logger.info("触发地址: POST http://0.0.0.0:%s/api/trigger", self.port)
         except OSError as e:
             logger.error(
                 "API 触发服务启动失败（端口 %s 可能被占用）: %s", self.port, e
