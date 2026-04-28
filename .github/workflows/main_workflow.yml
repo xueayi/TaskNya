@@ -74,11 +74,30 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download EXE Artifact
         uses: actions/download-artifact@v4
         with:
           name: TaskNya-Windows
           path: ./release
+
+      - name: Prepare Release Notes
+        run: |
+          {
+            echo "## TaskNya ${{ github.ref_name }} 发布记录"
+            echo ""
+            echo "感谢使用 TaskNya！本次发布包含了自动构建的 Docker 镜像和 Windows 可执行文件。"
+            echo ""
+            echo "### 产物说明"
+            echo "- **Docker**: \`docker pull xueayis/tasknya:latest\` 或 \`xueayis/tasknya:${{ github.ref_name }}\`"
+            echo "- **Windows**: 下载下方的 \`.exe\` 文件即可运行。"
+            echo ""
+            if [ -f RELEASE_NOTES.md ]; then
+              cat RELEASE_NOTES.md
+            fi
+          } > _release_body.md
 
       - name: Create GitHub Release
         id: create_release
@@ -87,18 +106,8 @@ jobs:
           files: |
             ./release/TaskNya-*.exe
           name: TaskNya ${{ github.ref_name }}
-          body: |
-            ## TaskNya ${{ github.ref_name }} 发布记录
-            
-            感谢使用 TaskNya！本次发布包含了自动构建的 Docker 镜像和 Windows 可执行文件。
-            
-            ### 产物说明
-            - **Docker**: `docker pull xueayis/tasknya:latest` 或 `xueayis/tasknya:${{ github.ref_name }}`
-            - **Windows**: 下载下方的 `.exe` 文件即可运行。
-            
-            ### 更新日志
+          body_path: _release_body.md
           draft: false
           prerelease: false
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

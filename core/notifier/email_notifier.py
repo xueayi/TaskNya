@@ -53,14 +53,29 @@ class EmailNotifier(BaseNotifier):
         self.use_ssl = email_config.get('use_ssl', True)
         self.title = email_config.get('title', '🎉 TaskNya 任务完成通知')
         self.footer = email_config.get('footer', '此邮件由 TaskNya 自动发送')
-        
-        # 内部使用 Webhook 的 MessageBuilder 来生成文本内容
-        # 虽然我们不是 Webhook，但 MessageBuilder 生成的 MD 文本也适合邮件正文
+        self.custom_text_enabled = email_config.get('custom_text_enabled', False)
+        self.custom_text_mode = email_config.get('custom_text_mode', 'template')
+        self.custom_text = email_config.get('custom_text', '')
         self.message_builder = MessageBuilder(email_config)
     
     @property
     def enabled(self) -> bool:
         return self._enabled and bool(self.server) and bool(self.user) and bool(self.recipient)
+    
+    def _build_email_content(self, training_info: Dict[str, Any]) -> str:
+        if self.custom_text_enabled and self.custom_text:
+            context = self.message_builder.build_context(training_info)
+            custom = MessageBuilder.replace_variables(self.custom_text, context)
+            if self.custom_text_mode == 'template':
+                return f"<html><body><pre>{custom}</pre></body></html>"
+            else:
+                default_html = self.message_builder.build_html_content(training_info)
+                insert_point = default_html.rfind('</div>\n        <div class="footer">')
+                if insert_point > 0:
+                    custom_section = f'<div class="info-item"><span class="info-label">附加信息:</span><br><pre>{custom}</pre></div>'
+                    return default_html[:insert_point] + custom_section + default_html[insert_point:]
+                return default_html + f"<pre>{custom}</pre>"
+        return self.message_builder.build_html_content(training_info)
     
     def send(self, training_info: Dict[str, Any]) -> bool:
         """
@@ -77,7 +92,7 @@ class EmailNotifier(BaseNotifier):
             return False
         
         # 构建HTML格式的邮件内容
-        html_content = self.message_builder.build_html_content(training_info)
+        html_content = self._build_email_content(training_info)
         
         # 解析收件人列表 (支持逗号或分号分隔)
         recipients = [r.strip() for r in self.recipient.replace(';', ',').split(',') if r.strip()]

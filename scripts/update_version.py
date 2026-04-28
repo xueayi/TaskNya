@@ -44,17 +44,12 @@ if __name__ == "__main__":
     if target_version.startswith('v'):
         target_version = target_version[1:]
 
-    # 定义需要更新的文件列表（目前仅 index.html）
-    # 路径使用相对于项目根目录的相对路径
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    files_to_update = [
-        os.path.join(base_dir, 'app', 'templates', 'index.html'),
-    ]
 
-    success = True
-    for file in files_to_update:
-        if not update_version(file, target_version):
-            success = False
-    
-    if not success:
-        sys.exit(1)
+    # 更新 VERSION 文件（单一版本来源）
+    version_file = os.path.join(base_dir, 'VERSION')
+    with open(version_file, 'w', encoding='utf-8') as f:
+        f.write(target_version + '\n')
+    print(f"Updated VERSION file to {target_version}")
+
+    print(f"Version {target_version} written to VERSION file. Templates use dynamic reading.")

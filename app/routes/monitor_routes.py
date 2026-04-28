@@ -6,15 +6,25 @@
 """
 
 import os
-import sys
-import threading
 import logging
-from flask import Blueprint, jsonify
+from datetime import datetime
+
+from flask import Blueprint, jsonify, request
+
+from core.config import ConfigManager
+from core.notifier import (
+    WebhookNotifier,
+    GenericWebhookNotifier,
+    EmailNotifier,
+    WeComNotifier,
+    MessageBuilder,
+)
 
 logger = logging.getLogger(__name__)
 
 # 创建蓝图
 monitor_bp = Blueprint('monitor', __name__, url_prefix='/api/monitor')
+trigger_bp = Blueprint('trigger', __name__, url_prefix='/api')
 
 # 路径配置
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -142,3 +152,70 @@ def get_status():
         'status': 'running' if _monitor_state.is_running() else 'stopped',
         'running': _monitor_state.is_running()
     })
+
+
+@trigger_bp.route('/trigger', methods=['POST'])
+def trigger_notification():
+    """
+    手动触发通知
+
+    接受 JSON body（可选）:
+    {
+        "message": "自定义消息",
+        "project_name": "项目名"
+    }
+    """
+    if _monitor_state is None:
+        return jsonify({'status': 'error', 'message': '监控服务未初始化'}), 500
+
+    body = request.get_json(silent=True) or {}
+
+    config_manager = ConfigManager(config_dir=CONFIG_DIR)
+    config = config_manager.load_config()
+
+    auth_token = config.get('monitor', {}).get('check_api_auth_token', '')
+    if auth_token:
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header != f'Bearer {auth_token}':
+            return jsonify({'status': 'error', 'message': '认证失败'}), 401
+
+    try:
+        now = datetime.now()
+        project_name = body.get('project_name', config['monitor']['project_name'])
+        message = body.get('message', 'Web UI 手动触发通知')
+
+        msg_builder = MessageBuilder(config.get('webhook', {}))
+        training_info = msg_builder.build_training_info(
+            start_time=now,
+            end_time=now,
+            project_name=project_name,
+            method="手动触发",
+            detail=message,
+            gpu_info=None,
+        )
+
+        results = {}
+
+        webhook = WebhookNotifier(config.get('webhook', {}))
+        if webhook.enabled:
+            results['webhook'] = webhook.send(training_info)
+
+        generic = GenericWebhookNotifier(config.get('generic_webhook', {}))
+        if generic.enabled:
+            results['generic_webhook'] = generic.send(training_info)
+
+        email = EmailNotifier(config.get('email', {}))
+        if email.enabled:
+            results['email'] = email.send(training_info)
+
+        wecom = WeComNotifier(config.get('wecom', {}))
+        if wecom.enabled:
+            results['wecom'] = wecom.send(training_info)
+
+        return jsonify({
+            'status': 'success',
+            'message': '通知已触发',
+            'results': results,
+        })
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500

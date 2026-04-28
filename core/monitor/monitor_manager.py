@@ -13,6 +13,7 @@ from core.monitor.file_monitor import FileMonitor
 from core.monitor.log_monitor import LogMonitor
 from core.monitor.gpu_monitor import GpuMonitor
 from core.monitor.directory_monitor import DirectoryMonitor
+from core.monitor.http_monitor import HttpMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,7 @@ class MonitorManager:
             LogMonitor(monitor_config),
             GpuMonitor(monitor_config),
             DirectoryMonitor(monitor_config),
+            HttpMonitor(monitor_config),
         ]
         
         # 记录启用的监控器

@@ -52,6 +52,21 @@ DEFAULT_CONFIG = {
         "check_directory_detect_removed": False,  # 检测删除
         "check_directory_detect_modified": False, # 检测修改（默认关闭，防噪）
         "check_directory_continuous_mode": True,  # 持续监控模式：触发通知后继续运行
+        
+        # HTTP 轮询检测
+        "check_http_enabled": False,
+        "check_http_url": "",
+        "check_http_method": "GET",
+        "check_http_headers": {},
+        "check_http_body": "",
+        "check_http_expected_status": 200,
+        "check_http_expected_keywords": [],
+        "check_http_timeout": 10,
+        
+        # API 被动触发
+        "check_api_enabled": False,
+        "check_api_port": 9870,
+        "check_api_auth_token": "",
     },
     
     "webhook": {
@@ -59,6 +74,9 @@ DEFAULT_CONFIG = {
         "url": "https://test.webhook.url/hook",
         "title": "测试通知",
         "color": "green",
+        "custom_text_enabled": False,
+        "custom_text_mode": "template",
+        "custom_text": "",
         "include_project_name": True,
         "include_project_name_title": "项目",
 
@@ -98,9 +116,38 @@ DEFAULT_CONFIG = {
             "Content-Type": "application/json"
         },
         "body": "{\n  \"content\": \"[ ${project_name} ]\\n----------------------------\\n触发方式: ${method}\\n触发详情: ${detail}\\n----------------------------\\n[ 数据统计 ]\\n报告统计: ${report_summary}\\n变更列表: ${report_change_list}\\n提示: ${report_actions}\\n----------------------------\\n详情查看: https://xxxx.xxxx.xxxx:xxxx\\n\\n${anime_quote}\\n[ 来自 XiaoXue-TaskNya 推送 ]\",\n  \"umo\": \"飘雪:GroupMessage:xxxxxxxx\",\n  \"message_type\": \"text\"\n}",
-        "retry_count": 2,  # 重试次数 0-5
-        "timeout": 10,  # 请求超时（秒）
-        "anime_quote_enabled": True,  # 是否在消息中追加二次元语录
+        "retry_count": 2,
+        "timeout": 10,
+    },
+    
+    # 企业微信 Webhook 配置
+    "wecom": {
+        "enabled": False,
+        "url": "",
+        "title": "任务完成通知",
+        "footer": "此消息由 TaskNya 发送",
+        "msg_type": "markdown",
+        "custom_text_enabled": False,
+        "custom_text_mode": "template",
+        "custom_text": "",
+        # 共享 include_* 配置
+        "include_project_name": True,
+        "include_project_name_title": "项目",
+        "include_start_time": True,
+        "include_start_time_title": "开始",
+        "include_end_time": True,
+        "include_end_time_title": "结束",
+        "include_method": True,
+        "include_method_title": "方式",
+        "include_duration": True,
+        "include_duration_title": "耗时",
+        "include_hostname": True,
+        "include_hostname_title": "主机",
+        "include_gpu_info": False,
+        "include_gpu_info_title": "GPU",
+        "include_report_summary": True,
+        "include_report_details": True,
+        "include_report_actions": True,
     },
     
     "email": {
@@ -108,12 +155,15 @@ DEFAULT_CONFIG = {
         "smtp_server": "smtp.qq.com",
         "smtp_port": 465,
         "smtp_user": "",
-        "smtp_password": "",  # 授权码或密码
-        "sender": "",         # 发件人地址，通常同 smtp_user
-        "recipient": "",      # 收件人地址
+        "smtp_password": "",
+        "sender": "",
+        "recipient": "",
         "use_ssl": True,
         "title": "🎉 TaskNya 任务完成通知",
         "footer": "此邮件由 TaskNya 自动发送",
+        "custom_text_enabled": False,
+        "custom_text_mode": "template",
+        "custom_text": "",
         
         # 内容显示选项(与webhook共享MessageBuilder配置)
         "include_project_name": True,

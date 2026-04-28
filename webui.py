@@ -49,7 +49,7 @@ def parse_args():
         '-p', '--port',
         type=int,
         default=None,
-        help='Web 服务端口（默认: 5000）'
+        help='Web 服务端口（默认: 9870）'
     )
     parser.add_argument(
         '--host',
@@ -79,7 +79,7 @@ def get_config(args):
     debug = args.debug or os.environ.get('TASKNYA_DEBUG', '').lower() in ('1', 'true', 'yes')
     
     # 端口
-    port = args.port or int(os.environ.get('TASKNYA_PORT', '5000'))
+    port = args.port or int(os.environ.get('TASKNYA_PORT', '9870'))
     
     # 主机
     host = args.host or os.environ.get('TASKNYA_HOST', '0.0.0.0')

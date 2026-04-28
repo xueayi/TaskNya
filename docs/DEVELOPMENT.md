@@ -1,6 +1,6 @@
 # TaskNya 开发手册
 
-> 更新日期: 2026-01-15
+> 更新日期: 2026-04-28
 
 ---
 
@@ -29,6 +29,8 @@
 - **后端**: Python 3.12, Flask, Flask-Sock (WebSocket)
 - **核心**: 抽象基类 (ABC), YAML 配置管理
 - **前端**: Vanilla JS, Bootstrap 5, BiIcons
+- **通知**: `WeComNotifier` 为企业微信群机器人通知器；`MessageBuilder` 提供统一的变量替换入口（`replace_variables` / `build_context`），供各渠道复用。
+- **配置校验**: 时间类字段在验证链路中通过 `parse_time_to_seconds` 解析，支持 `1h30m` 等人性化时长写法（与纯秒数兼容）。
 
 ---
 
@@ -38,16 +40,21 @@
 
 ```text
 TaskNya/
+├── VERSION              # 当前版本号（发布/构建时写入，供程序与 UI 动态读取）
 ├── core/                # 核心业务逻辑（纯 Python，不依赖 Flask）
 │   ├── config/          # 配置加载、校验与默认值
 │   ├── monitor/         # 监控器实现（文件、日志、GPU 等）
-│   ├── notifier/        # 通知器实现（Webhook、消息构建）
+│   ├── notifier/        # 通知器实现（Webhook、邮件、企业微信、消息构建等）
+│   │   └── wecom_notifier.py  # 企业微信（群机器人）通知器
 │   └── utils/           # 通用工具（GPU 接口、日志配置）
 ├── app/                 # Web UI 后端（Flask）
 │   ├── routes/          # REST API 路由
 │   ├── websocket/       # WebSocket 实时推送逻辑
 │   ├── static/          # 前端 JS/CSS
 │   └── templates/       # HTML 模板
+├── docs/
+│   ├── notification_setup.md   # 多平台通知与渠道配置说明
+│   └── inline_variables.md     # 通知模板内联变量参考
 ├── main.py              # 命令行运行入口
 └── webui.py             # Web 界面运行入口
 ```

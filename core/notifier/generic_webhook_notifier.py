@@ -63,7 +63,6 @@ class GenericWebhookNotifier(BaseNotifier):
                 - body: 自定义 Body (字符串或字典)
                 - retry_count: 重试次数 (0-5)
                 - timeout: 请求超时（秒）
-                - anime_quote_enabled: 是否启用二次元语录
         """
         self._enabled = config.get('enabled', False)
         self.url = config.get('url', '')
@@ -72,7 +71,6 @@ class GenericWebhookNotifier(BaseNotifier):
         self.body_template = config.get('body', '')
         self.retry_count = min(max(config.get('retry_count', 0), 0), 5)
         self.timeout = config.get('timeout', 10)
-        self.anime_quote_enabled = config.get('anime_quote_enabled', False)
         
         # 验证 HTTP 方法
         if self.method not in self.ALLOWED_METHODS:
@@ -176,8 +174,9 @@ class GenericWebhookNotifier(BaseNotifier):
                         "report_added_list", "report_removed_list", "report_modified_list", "report_change_list"]:
                 context[key] = "无" if "list" not in key else ""
 
-        # 添加二次元语录
-        if self.anime_quote_enabled:
+        # 自动检测：如果 body 模板中包含 ${anime_quote}，则获取语录
+        body_str = self.body_template if isinstance(self.body_template, str) else str(self.body_template)
+        if '${anime_quote}' in body_str:
             context["anime_quote"] = get_anime_quote()
         else:
             context["anime_quote"] = ""

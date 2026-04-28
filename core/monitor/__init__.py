@@ -6,6 +6,7 @@ from core.monitor.file_monitor import FileMonitor
 from core.monitor.log_monitor import LogMonitor
 from core.monitor.gpu_monitor import GpuMonitor
 from core.monitor.directory_monitor import DirectoryMonitor
+from core.monitor.http_monitor import HttpMonitor
 from core.monitor.monitor_manager import MonitorManager
 
 __all__ = [
@@ -14,5 +15,6 @@ __all__ = [
     'LogMonitor',
     'GpuMonitor',
     'DirectoryMonitor',
+    'HttpMonitor',
     'MonitorManager',
 ]

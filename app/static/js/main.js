@@ -4,73 +4,15 @@ function showSaveConfigModal() {
     modal.show();
 }
 
-// 获取表单数据
+// 获取表单数据（用于保存配置）
 function getFormData() {
-    const form = document.getElementById('configForm');
-    const formData = new FormData(form);
-    const config = {
-        monitor: {},
-        webhook: {},
-        generic_webhook: {},
-        email: {}
-    };
+    const config = collectFormData();
 
-    // 处理表单数据
-    formData.forEach((value, key) => {
-        const [section, field] = key.split('.');
-        if (section === 'monitor') {
-            if (key === 'monitor.check_log_markers') {
-                config.monitor[field] = value.split('\n').filter(line => line.trim());
-            } else if (key === 'monitor.timeout') {
-                config.monitor[field] = value === 'None' ? null : parseInt(value);
-            } else if (key.includes('enabled')) {
-                config.monitor[field] = value === 'on';
-            } else if (key.includes('threshold')) {
-                config.monitor[field] = parseFloat(value);
-            } else if (key.includes('interval') || key.includes('checks') || field === 'logprint') {
-                const num = parseInt(value);
-                config.monitor[field] = isNaN(num) ? null : num;
-            } else if (key === 'monitor.check_log_mode') {
-                config.monitor[field] = value;
-            } else {
-                config.monitor[field] = value;
-            }
-        } else if (section === 'webhook') {
-            if (key.includes('enabled')) {
-                config.webhook[field] = value === 'on';
-            } else {
-                config.webhook[field] = value;
-            }
-        } else if (section === 'generic_webhook') {
-            if (field === 'enabled' || field === 'anime_quote_enabled') {
-                config.generic_webhook[field] = value === 'on';
-            } else if (field === 'retry_count' || field === 'timeout') {
-                config.generic_webhook[field] = parseInt(value) || 0;
-            } else if (field === 'headers') {
-                try {
-                    config.generic_webhook[field] = JSON.parse(value || '{}');
-                } catch (e) {
-                    config.generic_webhook[field] = { "Content-Type": "application/json" };
-                }
-            } else {
-                config.generic_webhook[field] = value;
-            }
-        } else if (section === 'email') {
-            if (field === 'enabled' || field === 'use_ssl') {
-                config.email[field] = value === 'on';
-            } else if (field === 'smtp_port') {
-                config.email[field] = parseInt(value) || 465;
-            } else {
-                config.email[field] = value;
-            }
-        }
-    });
-
-    // 同步共享配置选项: 将webhook的include_*选项同步到email
-    // 这样邮件和飞书使用相同的内容显示设置
-    Object.keys(config.webhook).forEach(key => {
+    // 同步共享配置选项: 将webhook的include_*选项同步到email和wecom
+    Object.keys(config.webhook || {}).forEach(key => {
         if (key.startsWith('include_')) {
-            config.email[key] = config.webhook[key];
+            if (config.email) config.email[key] = config.webhook[key];
+            if (config.wecom) config.wecom[key] = config.webhook[key];
         }
     });
 
@@ -195,59 +137,81 @@ async function loadConfig(filename) {
             const config = result.config;
 
             // 更新表单值
-            Object.entries(config.monitor).forEach(([key, value]) => {
-                const input = document.querySelector(`[name="monitor.${key}"]`);
-                if (input) {
-                    if (input.type === 'checkbox') {
-                        input.checked = value;
-                    } else if (key === 'check_log_markers' && Array.isArray(value)) {
-                        input.value = value.join('\n');
-                    } else {
-                        input.value = value === null ? 'None' : value;
-                    }
-                }
+            // 移除旧克隆卡片
+            document.querySelectorAll('[data-instance]').forEach(el => el.remove());
+
+            // 分离基础字段和额外实例字段
+            const instanceSuffixes = new Set();
+            const allSections = ['monitor', 'webhook', 'generic_webhook', 'wecom', 'email'];
+            allSections.forEach(sec => {
+                if (!config[sec]) return;
+                Object.keys(config[sec]).forEach(k => {
+                    const m = k.match(/__(\d+)$/);
+                    if (m) instanceSuffixes.add(m[0]);
+                });
             });
 
-            Object.entries(config.webhook).forEach(([key, value]) => {
-                const input = document.querySelector(`[name="webhook.${key}"]`);
-                if (input) {
-                    if (input.type === 'checkbox') {
-                        input.checked = value;
-                    } else if (key.endsWith('_title')) {
-                        input.value = value || '';
-                    } else {
-                        input.value = value;
+            // 为额外实例创建克隆卡片
+            const suffixToType = {};
+            if (config.monitor) {
+                instanceSuffixes.forEach(suffix => {
+                    const types = ['file_check', 'log_check', 'gpu_check', 'directory_check', 'http_check', 'api_trigger'];
+                    types.forEach(t => {
+                        const probe = t === 'gpu_check' ? 'check_gpu_power_enabled' : t === 'api_trigger' ? 'check_api_enabled' : `check_${t.replace('_check','').replace('_trigger','')}_enabled`;
+                        const enabledKey = probe.replace('check_file_check', 'check_file').replace('check_log_check', 'check_log')
+                            .replace('check_directory_check', 'check_directory').replace('check_http_check', 'check_http');
+                        if (config.monitor[enabledKey + suffix] !== undefined) {
+                            addModuleCard(t);
+                        }
+                    });
+                });
+            }
+            ['webhook', 'generic_webhook', 'wecom', 'email'].forEach(sec => {
+                if (!config[sec]) return;
+                instanceSuffixes.forEach(suffix => {
+                    if (config[sec]['enabled' + suffix] !== undefined) {
+                        addModuleCard(sec);
                     }
-                }
+                });
             });
 
-            if (config.generic_webhook) {
-                Object.entries(config.generic_webhook).forEach(([key, value]) => {
-                    const input = document.querySelector(`[name="generic_webhook.${key}"]`);
-                    if (input) {
-                        if (input.type === 'checkbox') {
-                            input.checked = value;
-                        } else if (key === 'headers') {
-                            input.value = JSON.stringify(value, null, 2);
-                        } else {
-                            input.value = value || '';
-                        }
-                    }
-                });
-            }
+            // 填充所有字段值（包括 __N 后缀的克隆字段）
+            _loadSectionFields(config, 'monitor', (key, value) => {
+                const baseKey = _stripInstanceSuffix(key);
+                if (baseKey === 'check_http_headers' && value && typeof value === 'object') return JSON.stringify(value);
+                if (value === null) return 'None';
+                return value;
+            });
+            _loadSectionFields(config, 'webhook');
+            _loadSectionFields(config, 'generic_webhook', (key, value) => {
+                const baseKey = _stripInstanceSuffix(key);
+                if (baseKey === 'headers' && value && typeof value === 'object') return JSON.stringify(value, null, 2);
+                return value;
+            });
+            _loadSectionFields(config, 'wecom');
+            _loadSectionFields(config, 'email');
 
-            if (config.email) {
-                Object.entries(config.email).forEach(([key, value]) => {
-                    const input = document.querySelector(`[name="email.${key}"]`);
-                    if (input) {
-                        if (input.type === 'checkbox') {
-                            input.checked = value;
-                        } else {
-                            input.value = value || '';
-                        }
-                    }
-                });
-            }
+            toggleCustomTextArea('webhook');
+            toggleCustomTextArea('wecom');
+            toggleCustomTextArea('email');
+
+            // 填充 tag rows
+            _loadTagRows('logMarkerRows', config.monitor, 'check_log_markers');
+            _loadTagRows('excludeKeywordRows', config.monitor, 'check_directory_exclude_keywords');
+            _loadTagRows('httpKeywordRows', config.monitor, 'check_http_expected_keywords');
+            _loadActionKeywordRows('actionKeywordRows', config.monitor, 'check_directory_action_keywords');
+
+            // 克隆实例的 tag rows
+            instanceSuffixes.forEach(suffix => {
+                _loadTagRows('logMarkerRows' + suffix, config.monitor, 'check_log_markers' + suffix);
+                _loadTagRows('excludeKeywordRows' + suffix, config.monitor, 'check_directory_exclude_keywords' + suffix);
+                _loadTagRows('httpKeywordRows' + suffix, config.monitor, 'check_http_expected_keywords' + suffix);
+                _loadActionKeywordRows('actionKeywordRows' + suffix, config.monitor, 'check_directory_action_keywords' + suffix);
+            });
+
+            initModuleVisibility();
+            if (typeof updateFeishuPreview === 'function') updateFeishuPreview();
+            if (typeof updateWecomPreview === 'function') updateWecomPreview();
 
             // 关闭模态框
             const modal = bootstrap.Modal.getInstance(document.getElementById('configListModal'));
@@ -434,100 +398,302 @@ function applyCurrentConfig() {
         });
 }
 
+function _stripInstanceSuffix(s) {
+    return s.replace(/__\d+$/, '');
+}
+
+function _loadSectionFields(config, section, transform) {
+    if (!config[section]) return;
+    Object.entries(config[section]).forEach(([key, value]) => {
+        const input = document.querySelector(`[name="${section}.${key}"]`);
+        if (!input) return;
+        if (input.type === 'checkbox') {
+            input.checked = !!value;
+        } else {
+            input.value = transform ? (transform(key, value) ?? '') : (value ?? '');
+        }
+    });
+}
+
+function _loadTagRows(containerId, data, dataKey) {
+    const container = document.getElementById(containerId);
+    if (!container || !data) return;
+    container.innerHTML = '';
+    const values = data[dataKey];
+    if (Array.isArray(values)) {
+        values.forEach(v => addTagRow(containerId, v));
+    }
+}
+
+function _loadActionKeywordRows(containerId, data, dataKey) {
+    const container = document.getElementById(containerId);
+    if (!container || !data) return;
+    container.innerHTML = '';
+    const ak = data[dataKey];
+    if (ak && typeof ak === 'object' && !Array.isArray(ak)) {
+        Object.entries(ak).forEach(([action, keywords]) => {
+            const fn = containerId === 'actionKeywordRows' ? addActionKeywordRow :
+                (a, k) => {
+                    const row = document.createElement('div');
+                    row.className = 'input-group input-group-sm mb-1 tag-input-row';
+                    row.innerHTML = `
+                        <input type="text" class="form-control" placeholder="建议内容" value="${escapeHtml(a)}" style="max-width:35%;">
+                        <input type="text" class="form-control" placeholder="关键词（逗号分隔）" value="${escapeHtml(k)}">
+                        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+                            <i class="bi bi-x-lg"></i>
+                        </button>`;
+                    container.appendChild(row);
+                };
+            const kwStr = Array.isArray(keywords) ? keywords.join(', ') : keywords;
+            if (containerId === 'actionKeywordRows') {
+                addActionKeywordRow(action, kwStr);
+            } else {
+                fn(action, kwStr);
+            }
+        });
+    }
+}
+
 function collectFormData() {
     const config = {
         monitor: {},
         webhook: {},
         generic_webhook: {},
+        wecom: {},
         email: {}
     };
 
-    // 收集所有input元素的值
     document.querySelectorAll('input, select, textarea').forEach(input => {
         if (!input.name) return;
 
-        const [section, field] = input.name.split('.');
+        const nameParts = input.name.split('.');
+        if (nameParts.length !== 2) return;
+        const [sectionRaw, field] = nameParts;
+        const section = _stripInstanceSuffix(sectionRaw);
+        const baseField = _stripInstanceSuffix(field);
         let value = input.type === 'checkbox' ? input.checked : input.value;
 
-        // 根据字段名和类型进行数据转换
         if (section === 'monitor') {
-            if ((field === 'check_log_markers' || field === 'check_directory_exclude_keywords') && input.tagName.toLowerCase() === 'textarea') {
-                value = value.split('\n').filter(line => line.trim());
-            } else if (field === 'check_directory_action_keywords_text') {
-                // 解析操作建议文本到字典
-                const actionKeywords = {};
-                const lines = value.split('\n');
-                lines.forEach(line => {
-                    if (!line.trim()) return;
-                    // 支持中英文冒号
-                    const parts = line.split(/[:：]/);
-                    if (parts.length >= 2) {
-                        const action = parts[0].trim();
-                        const keywordsStr = parts.slice(1).join(':').trim(); // 重新组合后面可能包含冒号的部分
-                        if (action && keywordsStr) {
-                            // 支持中英文逗号
-                            const keywords = keywordsStr.split(/[,，]/).map(k => k.trim()).filter(k => k);
-                            actionKeywords[action] = keywords;
-                        }
-                    }
-                });
-                config.monitor['check_directory_action_keywords'] = actionKeywords;
-                return; // 不设置 _text 字段
-            } else if (field === 'timeout') {
-                value = value === 'None' ? null : parseInt(value);
-            } else if (field.includes('enabled')) {
+            if (baseField === 'check_log_markers' || baseField === 'check_directory_exclude_keywords' || baseField === 'check_directory_action_keywords_text') {
+                return;
+            } else if (baseField.includes('enabled') || baseField.includes('detect_') || baseField === 'check_directory_include_folders' || baseField === 'check_directory_continuous_mode' || baseField === 'double_check') {
                 value = input.checked;
-            } else if (field.includes('threshold')) {
+            } else if (baseField.includes('threshold')) {
                 value = parseFloat(value);
-            } else if (field.includes('interval') || field.includes('checks') || field === 'logprint' || field.includes('delay')) {
+            } else if (baseField === 'check_gpu_power_consecutive_checks') {
                 const num = parseInt(value);
                 value = isNaN(num) ? null : num;
-            } else if (field === 'check_log_mode') {
-                // 保持日志检测模式的字符串值
+            } else if (baseField === 'check_http_expected_status' || baseField === 'check_http_timeout' || baseField === 'check_api_port') {
+                value = parseInt(value) || 0;
+            } else if (baseField === 'check_http_headers') {
+                try { value = JSON.parse(value || '{}'); } catch (e) { value = {}; }
+            } else if (baseField.includes('interval') || baseField === 'logprint' || baseField.includes('delay') || baseField === 'timeout') {
+                value = value.trim() || null;
+            } else if (baseField === 'check_log_mode') {
                 value = input.value;
             }
         } else if (section === 'webhook') {
-            if (field.includes('enabled') || (field.startsWith('include_') && !field.endsWith('_title'))) {
-                // 只有enabled和include_xxx（不包括_title结尾）的字段才转换为布尔值
+            if (baseField === 'enabled' || baseField === 'custom_text_enabled' || (baseField.startsWith('include_') && !baseField.endsWith('_title'))) {
                 value = input.checked;
             }
-            // 其他webhook字段（包括_title结尾的）保持原始值
         } else if (section === 'generic_webhook') {
-            // 处理 generic_webhook 配置段
-            if (field === 'enabled' || field === 'anime_quote_enabled') {
+            if (baseField === 'enabled') {
                 value = input.checked;
-            } else if (field === 'retry_count' || field === 'timeout') {
+            } else if (baseField === 'retry_count' || baseField === 'timeout') {
                 value = parseInt(value) || 0;
-            } else if (field === 'headers') {
-                // 尝试解析 JSON
-                try {
-                    value = JSON.parse(value || '{}');
-                } catch (e) {
-                    value = { "Content-Type": "application/json" };
-                }
-            } else if (field === 'builtin_template') {
-                // 空字符串转换为 null
+            } else if (baseField === 'headers') {
+                try { value = JSON.parse(value || '{}'); } catch (e) { value = { "Content-Type": "application/json" }; }
+            } else if (baseField === 'builtin_template') {
                 value = value || null;
             }
-        } else if (section === 'email') {
-            if (field === 'enabled' || field === 'use_ssl') {
+        } else if (section === 'wecom') {
+            if (baseField === 'enabled' || baseField === 'custom_text_enabled') {
                 value = input.checked;
-            } else if (field === 'smtp_port') {
+            }
+        } else if (section === 'email') {
+            if (baseField === 'enabled' || baseField === 'use_ssl' || baseField === 'custom_text_enabled') {
+                value = input.checked;
+            } else if (baseField === 'smtp_port') {
                 value = parseInt(value) || 465;
             }
         }
 
-        // 设置值到配置对象
-        if (section === 'monitor') {
-            config.monitor[field] = value;
-        } else if (section === 'webhook') {
-            config.webhook[field] = value;
-        } else if (section === 'generic_webhook') {
-            config.generic_webhook[field] = value;
-        } else if (section === 'email') {
-            config.email[field] = value;
-        }
+        if (!config[section]) config[section] = {};
+        config[section][field] = value;
+    });
+
+    config.monitor['check_log_markers'] = collectTagRows('logMarkerRows');
+    config.monitor['check_directory_exclude_keywords'] = collectTagRows('excludeKeywordRows');
+    config.monitor['check_directory_action_keywords'] = collectActionKeywordRows();
+    config.monitor['check_http_expected_keywords'] = collectTagRows('httpKeywordRows');
+
+    // tag rows from cloned instances
+    document.querySelectorAll('[id^="logMarkerRows__"]').forEach(c => {
+        config.monitor['check_log_markers' + c.id.replace('logMarkerRows', '')] = collectTagRows(c.id);
+    });
+    document.querySelectorAll('[id^="excludeKeywordRows__"]').forEach(c => {
+        config.monitor['check_directory_exclude_keywords' + c.id.replace('excludeKeywordRows', '')] = collectTagRows(c.id);
+    });
+    document.querySelectorAll('[id^="httpKeywordRows__"]').forEach(c => {
+        config.monitor['check_http_expected_keywords' + c.id.replace('httpKeywordRows', '')] = collectTagRows(c.id);
+    });
+    document.querySelectorAll('[id^="actionKeywordRows__"]').forEach(c => {
+        const suffix = c.id.replace('actionKeywordRows', '');
+        const result = {};
+        c.querySelectorAll('.tag-input-row').forEach(row => {
+            const inputs = row.querySelectorAll('input[type="text"]');
+            const action = inputs[0].value.trim();
+            const kw = inputs[1].value.trim();
+            if (action && kw) result[action] = kw.split(/[,，]/).map(k => k.trim()).filter(k => k);
+        });
+        config.monitor['check_directory_action_keywords' + suffix] = result;
     });
 
     return config;
-} 
+}
+
+function toggleCustomTextArea(channel) {
+    const checkbox = document.getElementById(channel + '_custom_text_switch');
+    const area = document.getElementById(channel + '_custom_text_area');
+    if (checkbox && area) {
+        area.style.display = checkbox.checked ? 'block' : 'none';
+    }
+}
+
+// === 模块卡片管理（支持多实例） ===
+
+let _moduleInstanceCounter = 0;
+
+function addModuleCard(moduleType) {
+    const allCards = document.querySelectorAll(`[data-module-type="${moduleType}"]`);
+    const templateCard = allCards[0];
+    if (!templateCard) return;
+
+    if (templateCard.style.display === 'none') {
+        templateCard.style.display = '';
+        const sw = templateCard.querySelector('.form-check-input');
+        if (sw) sw.checked = true;
+        return;
+    }
+
+    _moduleInstanceCounter++;
+    const suffix = '__' + _moduleInstanceCounter;
+    const clone = templateCard.cloneNode(true);
+
+    clone.id = templateCard.id + suffix;
+    clone.setAttribute('data-instance', _moduleInstanceCounter);
+    clone.removeAttribute('style');
+
+    clone.querySelectorAll('[id]').forEach(el => {
+        el.id = el.id + suffix;
+    });
+    clone.querySelectorAll('[for]').forEach(label => {
+        label.setAttribute('for', label.getAttribute('for') + suffix);
+    });
+    clone.querySelectorAll('[name]').forEach(input => {
+        input.setAttribute('name', input.getAttribute('name') + suffix);
+    });
+
+    clone.querySelectorAll('input[type="text"], input[type="number"], input[type="password"], input[type="url"]').forEach(input => {
+        input.value = '';
+    });
+    clone.querySelectorAll('textarea').forEach(ta => { ta.value = ''; });
+    clone.querySelectorAll('select').forEach(sel => { sel.selectedIndex = 0; });
+    clone.querySelectorAll('.tag-input-row').forEach(row => row.remove());
+
+    const sw = clone.querySelector('.form-check-input');
+    if (sw) sw.checked = true;
+
+    const removeBtn = clone.querySelector('.module-remove-btn');
+    if (removeBtn) {
+        removeBtn.setAttribute('onclick', 'removeModuleCard(this)');
+    }
+
+    const lastCard = allCards[allCards.length - 1];
+    lastCard.after(clone);
+}
+
+function removeModuleCard(btnEl) {
+    const card = btnEl.closest('[data-module-type]');
+    if (!card) return;
+    const moduleType = card.getAttribute('data-module-type');
+    const isClone = card.hasAttribute('data-instance');
+
+    if (isClone) {
+        card.remove();
+    } else {
+        card.style.display = 'none';
+        const sw = card.querySelector('.form-check-input');
+        if (sw) sw.checked = false;
+    }
+}
+
+function initModuleVisibility() {
+    document.querySelectorAll('[data-module-type]').forEach(card => {
+        if (card.hasAttribute('data-instance')) return;
+        const sw = card.querySelector('.form-check-input');
+        if (card && sw) {
+            card.style.display = sw.checked ? '' : 'none';
+        }
+    });
+}
+
+// === +号输入行管理 ===
+
+function addTagRow(containerId, value) {
+    value = value || '';
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'input-group input-group-sm mb-1 tag-input-row';
+    row.innerHTML = `
+        <input type="text" class="form-control" value="${escapeHtml(value)}">
+        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    `;
+    container.appendChild(row);
+}
+
+function addActionKeywordRow(action, keywords) {
+    action = action || '';
+    keywords = keywords || '';
+    const container = document.getElementById('actionKeywordRows');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'input-group input-group-sm mb-1 tag-input-row';
+    row.innerHTML = `
+        <input type="text" class="form-control" placeholder="建议内容" value="${escapeHtml(action)}" style="max-width:35%;">
+        <input type="text" class="form-control" placeholder="关键词（逗号分隔）" value="${escapeHtml(keywords)}">
+        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    `;
+    container.appendChild(row);
+}
+
+function collectTagRows(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return [];
+    const values = [];
+    container.querySelectorAll('.tag-input-row input[type="text"]').forEach(input => {
+        const v = input.value.trim();
+        if (v) values.push(v);
+    });
+    return values;
+}
+
+function collectActionKeywordRows() {
+    const container = document.getElementById('actionKeywordRows');
+    if (!container) return {};
+    const result = {};
+    container.querySelectorAll('.tag-input-row').forEach(row => {
+        const inputs = row.querySelectorAll('input[type="text"]');
+        const action = inputs[0].value.trim();
+        const keywordsStr = inputs[1].value.trim();
+        if (action && keywordsStr) {
+            result[action] = keywordsStr.split(/[,，]/).map(k => k.trim()).filter(k => k);
+        }
+    });
+    return result;
+}

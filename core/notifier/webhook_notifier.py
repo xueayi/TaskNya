@@ -44,6 +44,9 @@ class WebhookNotifier(BaseNotifier):
         self.title = webhook_config.get('title', '🎉 任务完成通知')
         self.color = webhook_config.get('color', 'green')
         self.footer = webhook_config.get('footer', '此消息由TaskNya发送')
+        self.custom_text_enabled = webhook_config.get('custom_text_enabled', False)
+        self.custom_text_mode = webhook_config.get('custom_text_mode', 'template')
+        self.custom_text = webhook_config.get('custom_text', '')
         self.message_builder = MessageBuilder(webhook_config)
     
     @property
@@ -65,7 +68,7 @@ class WebhookNotifier(BaseNotifier):
             return False
         
         # 构建消息内容
-        content = self.message_builder.build_message_content(training_info)
+        content = self._build_content(training_info)
         
         # 构建飞书消息格式
         message = self._build_feishu_message(content)
@@ -91,6 +94,17 @@ class WebhookNotifier(BaseNotifier):
         except Exception as e:
             logger.error(f"发送通知时发生异常: {str(e)}")
             return False
+    
+    def _build_content(self, training_info: Dict[str, Any]) -> str:
+        if self.custom_text_enabled and self.custom_text:
+            context = self.message_builder.build_context(training_info)
+            custom = MessageBuilder.replace_variables(self.custom_text, context)
+            if self.custom_text_mode == 'template':
+                return custom
+            else:
+                default_content = self.message_builder.build_message_content(training_info)
+                return default_content + "\n\n" + custom
+        return self.message_builder.build_message_content(training_info)
     
     def _build_feishu_message(self, content: str) -> Dict[str, Any]:
         """
