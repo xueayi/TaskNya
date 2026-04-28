@@ -56,9 +56,36 @@
 2. 双击运行，浏览器访问 `http://localhost:9870`。
 
 ### Docker 方式
+
 ```bash
 docker pull xueayis/tasknya:latest
 docker run -d -p 9870:9870 -v $(pwd)/logs:/app/logs xueayis/tasknya:latest
+```
+
+或使用 Docker Compose：
+
+```yaml
+# docker-compose.yml
+services:
+  tasknya:
+    image: xueayis/tasknya:latest
+    container_name: tasknya
+    ports:
+      - "9870:9870"
+    volumes:
+      - ./configs:/app/configs      # 配置文件持久化
+      - ./logs:/app/logs             # 日志持久化
+      - ./monitor_targets:/app/monitor_targets  # 监控目标文件
+    environment:
+      - TASKNYA_HOST=0.0.0.0
+      - TASKNYA_PORT=9870
+    restart: unless-stopped
+```
+
+```bash
+docker compose up -d        # 启动
+docker compose logs -f      # 查看日志
+docker compose down         # 停止
 ```
 
 ### Python 源码方式
