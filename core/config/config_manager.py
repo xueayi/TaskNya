@@ -12,6 +12,7 @@ from typing import Dict, Any, Optional
 from copy import deepcopy
 
 from core.config.defaults import DEFAULT_CONFIG
+from core.utils.time_parser import parse_time_to_seconds
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +138,10 @@ class ConfigManager:
         if 'generic_webhook' in user_config and user_config['generic_webhook']:
             result['generic_webhook'].update(user_config['generic_webhook'])
         
+        # 合并 wecom 配置
+        if 'wecom' in user_config and user_config['wecom']:
+            result['wecom'].update(user_config['wecom'])
+        
         # 合并 email 配置
         if 'email' in user_config and user_config['email']:
             result['email'].update(user_config['email'])
@@ -157,19 +162,21 @@ class ConfigManager:
         try:
             monitor = config.get('monitor', {})
             
-            # 验证并转换数值类型
+            # 验证并转换数值类型（时间字段支持 "1h30m"、"30s" 等格式）
             if 'check_interval' in monitor:
-                monitor['check_interval'] = int(monitor['check_interval'])
+                monitor['check_interval'] = parse_time_to_seconds(monitor['check_interval'])
             if 'logprint' in monitor:
-                monitor['logprint'] = int(monitor['logprint'])
+                monitor['logprint'] = parse_time_to_seconds(monitor['logprint'])
             if 'timeout' in monitor and monitor['timeout'] is not None and monitor['timeout'] != 'None':
-                monitor['timeout'] = int(monitor['timeout'])
+                monitor['timeout'] = parse_time_to_seconds(monitor['timeout'])
             if 'check_gpu_power_threshold' in monitor:
                 monitor['check_gpu_power_threshold'] = float(monitor['check_gpu_power_threshold'])
             if 'check_gpu_power_consecutive_checks' in monitor:
                 monitor['check_gpu_power_consecutive_checks'] = int(monitor['check_gpu_power_consecutive_checks'])
             if 'check_directory_recheck_delay' in monitor:
-                monitor['check_directory_recheck_delay'] = int(monitor['check_directory_recheck_delay'])
+                monitor['check_directory_recheck_delay'] = parse_time_to_seconds(monitor['check_directory_recheck_delay'])
+            if 'check_file_recheck_delay' in monitor:
+                monitor['check_file_recheck_delay'] = parse_time_to_seconds(monitor['check_file_recheck_delay'])
             
             # 验证 webhook 配置
             webhook = config.get('webhook', {})

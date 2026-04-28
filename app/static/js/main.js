@@ -12,6 +12,7 @@ function getFormData() {
         monitor: {},
         webhook: {},
         generic_webhook: {},
+        wecom: {},
         email: {}
     };
 
@@ -19,30 +20,32 @@ function getFormData() {
     formData.forEach((value, key) => {
         const [section, field] = key.split('.');
         if (section === 'monitor') {
-            if (key === 'monitor.check_log_markers') {
+            if (key === 'monitor.check_log_markers' || key === 'monitor.check_directory_exclude_keywords') {
                 config.monitor[field] = value.split('\n').filter(line => line.trim());
             } else if (key === 'monitor.timeout') {
-                config.monitor[field] = value === 'None' ? null : parseInt(value);
+                config.monitor[field] = (value === 'None' || value === '') ? null : value.trim();
             } else if (key.includes('enabled')) {
                 config.monitor[field] = value === 'on';
             } else if (key.includes('threshold')) {
                 config.monitor[field] = parseFloat(value);
-            } else if (key.includes('interval') || key.includes('checks') || field === 'logprint') {
+            } else if (key === 'monitor.check_gpu_power_consecutive_checks') {
                 const num = parseInt(value);
                 config.monitor[field] = isNaN(num) ? null : num;
+            } else if (key.includes('interval') || field === 'logprint' || key.includes('delay')) {
+                config.monitor[field] = value.trim() || null;
             } else if (key === 'monitor.check_log_mode') {
                 config.monitor[field] = value;
             } else {
                 config.monitor[field] = value;
             }
         } else if (section === 'webhook') {
-            if (key.includes('enabled')) {
+            if (field === 'enabled' || field === 'custom_text_enabled') {
                 config.webhook[field] = value === 'on';
             } else {
                 config.webhook[field] = value;
             }
         } else if (section === 'generic_webhook') {
-            if (field === 'enabled' || field === 'anime_quote_enabled') {
+            if (field === 'enabled') {
                 config.generic_webhook[field] = value === 'on';
             } else if (field === 'retry_count' || field === 'timeout') {
                 config.generic_webhook[field] = parseInt(value) || 0;
@@ -55,8 +58,14 @@ function getFormData() {
             } else {
                 config.generic_webhook[field] = value;
             }
+        } else if (section === 'wecom') {
+            if (field === 'enabled' || field === 'custom_text_enabled') {
+                config.wecom[field] = value === 'on';
+            } else {
+                config.wecom[field] = value;
+            }
         } else if (section === 'email') {
-            if (field === 'enabled' || field === 'use_ssl') {
+            if (field === 'enabled' || field === 'use_ssl' || field === 'custom_text_enabled') {
                 config.email[field] = value === 'on';
             } else if (field === 'smtp_port') {
                 config.email[field] = parseInt(value) || 465;
@@ -66,11 +75,11 @@ function getFormData() {
         }
     });
 
-    // 同步共享配置选项: 将webhook的include_*选项同步到email
-    // 这样邮件和飞书使用相同的内容显示设置
+    // 同步共享配置选项: 将webhook的include_*选项同步到email和wecom
     Object.keys(config.webhook).forEach(key => {
         if (key.startsWith('include_')) {
             config.email[key] = config.webhook[key];
+            config.wecom[key] = config.webhook[key];
         }
     });
 
@@ -200,7 +209,7 @@ async function loadConfig(filename) {
                 if (input) {
                     if (input.type === 'checkbox') {
                         input.checked = value;
-                    } else if (key === 'check_log_markers' && Array.isArray(value)) {
+                    } else if ((key === 'check_log_markers' || key === 'check_directory_exclude_keywords') && Array.isArray(value)) {
                         input.value = value.join('\n');
                     } else {
                         input.value = value === null ? 'None' : value;
@@ -220,6 +229,7 @@ async function loadConfig(filename) {
                     }
                 }
             });
+            toggleCustomTextArea('webhook');
 
             if (config.generic_webhook) {
                 Object.entries(config.generic_webhook).forEach(([key, value]) => {
@@ -236,6 +246,20 @@ async function loadConfig(filename) {
                 });
             }
 
+            if (config.wecom) {
+                Object.entries(config.wecom).forEach(([key, value]) => {
+                    const input = document.querySelector(`[name="wecom.${key}"]`);
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            input.checked = value;
+                        } else {
+                            input.value = value || '';
+                        }
+                    }
+                });
+                toggleCustomTextArea('wecom');
+            }
+
             if (config.email) {
                 Object.entries(config.email).forEach(([key, value]) => {
                     const input = document.querySelector(`[name="email.${key}"]`);
@@ -247,6 +271,7 @@ async function loadConfig(filename) {
                         }
                     }
                 });
+                toggleCustomTextArea('email');
             }
 
             // 关闭模态框
@@ -439,6 +464,7 @@ function collectFormData() {
         monitor: {},
         webhook: {},
         generic_webhook: {},
+        wecom: {},
         email: {}
     };
 
@@ -473,28 +499,27 @@ function collectFormData() {
                 });
                 config.monitor['check_directory_action_keywords'] = actionKeywords;
                 return; // 不设置 _text 字段
-            } else if (field === 'timeout') {
-                value = value === 'None' ? null : parseInt(value);
             } else if (field.includes('enabled')) {
                 value = input.checked;
             } else if (field.includes('threshold')) {
                 value = parseFloat(value);
-            } else if (field.includes('interval') || field.includes('checks') || field === 'logprint' || field.includes('delay')) {
+            } else if (field === 'check_gpu_power_consecutive_checks') {
                 const num = parseInt(value);
                 value = isNaN(num) ? null : num;
+            } else if (field.includes('interval') || field === 'logprint' || field.includes('delay') || field === 'timeout') {
+                // 时间字段保留原始字符串，后端支持 "1h30m" 等格式
+                value = value.trim() || null;
             } else if (field === 'check_log_mode') {
                 // 保持日志检测模式的字符串值
                 value = input.value;
             }
         } else if (section === 'webhook') {
-            if (field.includes('enabled') || (field.startsWith('include_') && !field.endsWith('_title'))) {
-                // 只有enabled和include_xxx（不包括_title结尾）的字段才转换为布尔值
+            if (field === 'enabled' || field === 'custom_text_enabled' || (field.startsWith('include_') && !field.endsWith('_title'))) {
                 value = input.checked;
             }
-            // 其他webhook字段（包括_title结尾的）保持原始值
         } else if (section === 'generic_webhook') {
             // 处理 generic_webhook 配置段
-            if (field === 'enabled' || field === 'anime_quote_enabled') {
+            if (field === 'enabled') {
                 value = input.checked;
             } else if (field === 'retry_count' || field === 'timeout') {
                 value = parseInt(value) || 0;
@@ -509,8 +534,12 @@ function collectFormData() {
                 // 空字符串转换为 null
                 value = value || null;
             }
+        } else if (section === 'wecom') {
+            if (field === 'enabled' || field === 'custom_text_enabled') {
+                value = input.checked;
+            }
         } else if (section === 'email') {
-            if (field === 'enabled' || field === 'use_ssl') {
+            if (field === 'enabled' || field === 'use_ssl' || field === 'custom_text_enabled') {
                 value = input.checked;
             } else if (field === 'smtp_port') {
                 value = parseInt(value) || 465;
@@ -524,10 +553,20 @@ function collectFormData() {
             config.webhook[field] = value;
         } else if (section === 'generic_webhook') {
             config.generic_webhook[field] = value;
+        } else if (section === 'wecom') {
+            config.wecom[field] = value;
         } else if (section === 'email') {
             config.email[field] = value;
         }
     });
 
     return config;
-} 
+}
+
+function toggleCustomTextArea(channel) {
+    const checkbox = document.getElementById(channel + '_custom_text_switch');
+    const area = document.getElementById(channel + '_custom_text_area');
+    if (checkbox && area) {
+        area.style.display = checkbox.checked ? 'block' : 'none';
+    }
+}

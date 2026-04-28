@@ -127,3 +127,72 @@ class TestConfigManager:
         assert 'config1.yaml' in configs
         assert 'config2.yaml' in configs
         assert 'other.txt' not in configs
+
+    def test_validate_config_time_string(self):
+        """测试时间字符串格式验证"""
+        config = {
+            "monitor": {
+                "check_interval": "1h30m",
+                "logprint": "5m",
+                "timeout": "2h",
+            }
+        }
+        result = ConfigManager.validate_config(config)
+        assert result is True
+        assert config["monitor"]["check_interval"] == 5400
+        assert config["monitor"]["logprint"] == 300
+        assert config["monitor"]["timeout"] == 7200
+
+    def test_validate_config_time_numeric_string(self):
+        """测试纯数字字符串时间"""
+        config = {
+            "monitor": {
+                "check_interval": "60",
+                "logprint": "120",
+            }
+        }
+        result = ConfigManager.validate_config(config)
+        assert result is True
+        assert config["monitor"]["check_interval"] == 60
+        assert config["monitor"]["logprint"] == 120
+
+    def test_validate_config_time_integer(self):
+        """测试整数时间值"""
+        config = {
+            "monitor": {
+                "check_interval": 60,
+                "logprint": 120,
+            }
+        }
+        result = ConfigManager.validate_config(config)
+        assert result is True
+        assert config["monitor"]["check_interval"] == 60
+
+    def test_validate_config_recheck_delay_time_format(self):
+        """测试二次确认延迟支持时间格式"""
+        config = {
+            "monitor": {
+                "check_directory_recheck_delay": "30s",
+                "check_file_recheck_delay": "1m",
+            }
+        }
+        result = ConfigManager.validate_config(config)
+        assert result is True
+        assert config["monitor"]["check_directory_recheck_delay"] == 30
+        assert config["monitor"]["check_file_recheck_delay"] == 60
+
+    def test_save_load_exclude_keywords_roundtrip(self, temp_dir):
+        """测试排除关键词的保存/加载一致性"""
+        manager = ConfigManager(config_dir=temp_dir)
+        keywords = ["年报", "测试用素材", "往期周报"]
+        config = {
+            "monitor": {
+                "project_name": "test",
+                "check_directory_exclude_keywords": keywords,
+            },
+            "webhook": {"enabled": False},
+        }
+        manager.save_config(config, "test_keywords.yaml")
+        loaded = manager.load_config(os.path.join(temp_dir, "test_keywords.yaml"))
+        assert loaded["monitor"]["check_directory_exclude_keywords"] == keywords
+        assert isinstance(loaded["monitor"]["check_directory_exclude_keywords"], list)

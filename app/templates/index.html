@@ -472,6 +472,7 @@
                                         <i class="bi bi-info-circle"></i>
                                         以下设置对所有启用的通知器生效:
                                         <span class="badge bg-light text-dark">飞书</span>
+                                        <span class="badge bg-light text-dark">企业微信</span>
                                         <span class="badge bg-light text-dark">邮件</span>
                                     </small>
                                 </div>
@@ -663,9 +664,9 @@
                                             <input type="text" class="form-control" name="webhook.url"
                                                 value="{{ config.webhook.url }}">
                                         </div>
-                                        <div class="form-text">飞书机器人配置详见<a
-                                                href="https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot"
-                                                target="_blank">官方文档</a></div>
+                                        <div class="form-text">配置详见<a
+                                                href="https://github.com/xueayi/TaskNya/blob/main/docs/notification_setup.md"
+                                                target="_blank">多平台通知配置文档</a></div>
                                     </div>
 
                                     <div class="row">
@@ -699,6 +700,29 @@
                                         <label class="form-label">页脚信息</label>
                                         <input type="text" class="form-control" name="webhook.footer"
                                             value="{{ config.webhook.footer }}">
+                                    </div>
+
+                                    <!-- 自定义文本 -->
+                                    <div class="form-check form-switch mb-2">
+                                        <input type="checkbox" class="form-check-input" id="webhook_custom_text_switch"
+                                            name="webhook.custom_text_enabled" {% if config.webhook.custom_text_enabled %}checked{% endif %}
+                                            onchange="toggleCustomTextArea('webhook')">
+                                        <label class="form-check-label" for="webhook_custom_text_switch">
+                                            <i class="bi bi-pencil-square"></i> 自定义消息文本
+                                        </label>
+                                    </div>
+                                    <div id="webhook_custom_text_area" style="display: {{ 'block' if config.webhook.custom_text_enabled else 'none' }};">
+                                        <div class="mb-2">
+                                            <select class="form-select form-select-sm" name="webhook.custom_text_mode">
+                                                <option value="template" {% if config.webhook.custom_text_mode=='template' %}selected{% endif %}>完全自定义（替换默认消息）</option>
+                                                <option value="append" {% if config.webhook.custom_text_mode=='append' %}selected{% endif %}>追加模式（在默认消息后追加）</option>
+                                            </select>
+                                        </div>
+                                        <textarea class="form-control" name="webhook.custom_text" rows="4"
+                                            placeholder="支持 ${var} 变量，如 ${project_name}、${duration} 等">{{ config.webhook.custom_text }}</textarea>
+                                        <div class="form-text">
+                                            <a href="https://github.com/xueayi/TaskNya/blob/main/docs/inline_variables.md" target="_blank">查看可用变量 &rarr;</a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -780,6 +804,86 @@
                                         <input type="text" class="form-control" name="email.title"
                                             value="{{ config.email.title }}">
                                     </div>
+
+                                    <!-- 自定义文本 -->
+                                    <div class="form-check form-switch mb-2">
+                                        <input type="checkbox" class="form-check-input" id="email_custom_text_switch"
+                                            name="email.custom_text_enabled" {% if config.email.custom_text_enabled %}checked{% endif %}
+                                            onchange="toggleCustomTextArea('email')">
+                                        <label class="form-check-label" for="email_custom_text_switch">
+                                            <i class="bi bi-pencil-square"></i> 自定义消息文本
+                                        </label>
+                                    </div>
+                                    <div id="email_custom_text_area" style="display: {{ 'block' if config.email.custom_text_enabled else 'none' }};">
+                                        <div class="mb-2">
+                                            <select class="form-select form-select-sm" name="email.custom_text_mode">
+                                                <option value="template" {% if config.email.custom_text_mode=='template' %}selected{% endif %}>完全自定义（替换默认消息）</option>
+                                                <option value="append" {% if config.email.custom_text_mode=='append' %}selected{% endif %}>追加模式（在默认消息后追加）</option>
+                                            </select>
+                                        </div>
+                                        <textarea class="form-control" name="email.custom_text" rows="4"
+                                            placeholder="支持 ${var} 变量，如 ${project_name}、${duration} 等">{{ config.email.custom_text }}</textarea>
+                                        <div class="form-text">
+                                            <a href="https://github.com/xueayi/TaskNya/blob/main/docs/inline_variables.md" target="_blank">查看可用变量 &rarr;</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 企业微信通知配置 -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" class="form-check-input" id="wecom_switch"
+                                            name="wecom.enabled" {% if config.wecom.enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="wecom_switch">
+                                            <i class="bi bi-wechat"></i> 企业微信通知
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Webhook URL</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                                            <input type="text" class="form-control" name="wecom.url"
+                                                value="{{ config.wecom.url }}"
+                                                placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=...">
+                                        </div>
+                                        <div class="form-text">企业微信群机器人配置详见<a
+                                                href="https://developer.work.weixin.qq.com/document/path/91770"
+                                                target="_blank">官方文档</a></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">消息格式</label>
+                                        <select class="form-select" name="wecom.msg_type">
+                                            <option value="markdown" {% if config.wecom.msg_type=='markdown' %}selected{% endif %}>Markdown</option>
+                                            <option value="text" {% if config.wecom.msg_type=='text' %}selected{% endif %}>纯文本</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- 自定义文本 -->
+                                    <div class="form-check form-switch mb-2">
+                                        <input type="checkbox" class="form-check-input" id="wecom_custom_text_switch"
+                                            name="wecom.custom_text_enabled" {% if config.wecom.custom_text_enabled %}checked{% endif %}
+                                            onchange="toggleCustomTextArea('wecom')">
+                                        <label class="form-check-label" for="wecom_custom_text_switch">
+                                            <i class="bi bi-pencil-square"></i> 自定义消息文本
+                                        </label>
+                                    </div>
+                                    <div id="wecom_custom_text_area" style="display: {{ 'block' if config.wecom.custom_text_enabled else 'none' }};">
+                                        <div class="mb-2">
+                                            <select class="form-select form-select-sm" name="wecom.custom_text_mode">
+                                                <option value="template" {% if config.wecom.custom_text_mode=='template' %}selected{% endif %}>完全自定义（替换默认消息）</option>
+                                                <option value="append" {% if config.wecom.custom_text_mode=='append' %}selected{% endif %}>追加模式（在默认消息后追加）</option>
+                                            </select>
+                                        </div>
+                                        <textarea class="form-control" name="wecom.custom_text" rows="4"
+                                            placeholder="支持 ${var} 变量，如 ${project_name}、${duration} 等">{{ config.wecom.custom_text }}</textarea>
+                                        <div class="form-text">
+                                            <a href="https://github.com/xueayi/TaskNya/blob/main/docs/inline_variables.md" target="_blank">查看可用变量 &rarr;</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -852,33 +956,50 @@
 
                                     <div class="mb-3">
                                         <label class="form-label">自定义 Body (JSON)</label>
-                                        <textarea class="form-control" name="generic_webhook.body" rows="4"
-                                            placeholder='{"content": "项目 ${project_name} 已完成，耗时 ${duration}"}'>{{ config.generic_webhook.body }}</textarea>
+                                        <div class="mb-2">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <input type="radio" class="btn-check" name="jsonEditorMode" id="jsonFieldMode" checked
+                                                    onchange="switchJsonEditorMode('field')">
+                                                <label class="btn btn-outline-primary" for="jsonFieldMode">
+                                                    <i class="bi bi-list-ul"></i> 字段编辑器
+                                                </label>
+                                                <input type="radio" class="btn-check" name="jsonEditorMode" id="jsonRawMode"
+                                                    onchange="switchJsonEditorMode('raw')">
+                                                <label class="btn btn-outline-primary" for="jsonRawMode">
+                                                    <i class="bi bi-code-slash"></i> 原始 JSON
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- 字段编辑器模式 -->
+                                        <div id="jsonFieldEditor">
+                                            <div id="jsonFieldRows"></div>
+                                            <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="addJsonField()">
+                                                <i class="bi bi-plus-circle"></i> 添加字段
+                                            </button>
+                                        </div>
+
+                                        <!-- 原始 JSON 模式 -->
+                                        <div id="jsonRawEditor" style="display:none;">
+                                            <textarea class="form-control" id="genericWebhookBodyRaw" name="generic_webhook.body" rows="6"
+                                                placeholder='{"content": "项目 ${project_name} 已完成，耗时 ${duration}"}'>{{ config.generic_webhook.body }}</textarea>
+                                        </div>
+
+                                        <!-- 隐藏字段，字段编辑器模式下存储序列化后的 JSON -->
+                                        <input type="hidden" id="genericWebhookBodyHidden" name="generic_webhook.body"
+                                            value="{{ config.generic_webhook.body }}">
+
                                         <div class="form-text">
-                                            <strong>可用变量说明:</strong><br>
-                                            <code>${project_name}</code> - 项目名称<br>
-                                            <code>${start_time}</code> - 开始时间 (格式: YYYY-MM-DD HH:MM:SS)<br>
-                                            <code>${end_time}</code> - 结束时间<br>
-                                            <code>${duration}</code> - 总耗时 (格式: H:MM:SS)<br>
-                                            <code>${method}</code> - 触发方式 (如: 目标文件检测, GPU功耗检测)<br>
-                                            <code>${hostname}</code> - 主机名<br>
-                                            <code>${gpu_info}</code> - GPU 信息<br>
-                                            <code>${detail}</code> - 触发详情 (多文件感知时为报告摘要)<br>
-                                            <code>${report_summary}</code> - 目录报告统计摘要<br>
-                                            <code>${report_change_list}</code> - 增加及删除的文件列表<br>
-                                            <code>${report_actions}</code> - 建议操作汇总<br>
-                                            <code>${anime_quote}</code> - 二次元语录 (需开启)
+                                            <a href="https://github.com/xueayi/TaskNya/blob/main/docs/inline_variables.md" target="_blank">查看可用变量说明 &rarr;</a>
                                         </div>
                                     </div>
 
-                                    <div class="form-check form-switch">
-                                        <input type="checkbox" class="form-check-input" id="anime_quote_switch"
-                                            name="generic_webhook.anime_quote_enabled" {% if
-                                            config.generic_webhook.anime_quote_enabled %}checked{% endif %}>
-                                        <label class="form-check-label" for="anime_quote_switch">
-                                            <i class="bi bi-chat-quote"></i> 追加二次元语录
-                                        </label>
+                                    <!-- 内容预览 -->
+                                    <div class="mb-3">
+                                        <label class="form-label"><i class="bi bi-eye"></i> 内容预览（非 Markdown 模式）</label>
+                                        <div id="genericWebhookPreview" class="p-3 rounded border bg-light" style="white-space: pre-wrap; font-family: monospace; font-size: 0.85em; min-height: 60px;"></div>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -887,15 +1008,15 @@
             </div>
 
             <footer class="text-center text-muted mb-4">
-                <p>TaskNya - 通用任务监控工具 v0.5.0-test</p>
+                <p>TaskNya - 通用任务监控工具 v{{ version }}</p>
                 <p>
                     <a href="https://github.com/xueayi/TaskNya/" target="_blank" class="text-decoration-none">
                         <i class="bi bi-github"></i> GitHub 项目页
                     </a>
                     <span style="margin: 0 10px;">|</span>
-                    <a href="https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot" target="_blank"
+                    <a href="https://github.com/xueayi/TaskNya/blob/main/docs/notification_setup.md" target="_blank"
                         class="text-decoration-none">
-                        <i class="bi bi-book"></i> 飞书机器人配置文档
+                        <i class="bi bi-book"></i> 多平台通知配置文档
                     </a>
                 </p>
             </footer>
@@ -944,6 +1065,125 @@
         <!-- JavaScript -->
         <script>
             const INITIAL_ACTION_KEYWORDS = {{ config.monitor.check_directory_action_keywords | tojson }};
+            const INITIAL_WEBHOOK_BODY = {{ config.generic_webhook.body | tojson }};
+
+            const SAMPLE_VARIABLES = {
+                project_name: "我的训练任务",
+                start_time: "2026-01-01 10:00:00",
+                end_time: "2026-01-01 12:30:00",
+                duration: "2:30:00",
+                method: "目标文件检测",
+                hostname: "gpu-server-01",
+                gpu_info: "RTX 4090 (24GB)",
+                detail: "model.pth 已生成",
+                report_summary: "新增 3 项, 删除 1 项",
+                report_change_list: "1. [新增] output/model.pth [2.1GB]",
+                report_actions: "备份, 部署",
+                anime_quote: "人生就像一盒巧克力，你永远不知道下一颗是什么味道。"
+            };
+
+            let currentJsonMode = 'field';
+
+            function switchJsonEditorMode(mode) {
+                currentJsonMode = mode;
+                document.getElementById('jsonFieldEditor').style.display = mode === 'field' ? 'block' : 'none';
+                document.getElementById('jsonRawEditor').style.display = mode === 'raw' ? 'block' : 'none';
+                // 同步隐藏字段名，确保只有一个 name="generic_webhook.body" 生效
+                document.getElementById('genericWebhookBodyHidden').name = mode === 'field' ? 'generic_webhook.body' : '';
+                document.getElementById('genericWebhookBodyRaw').name = mode === 'raw' ? 'generic_webhook.body' : '';
+                if (mode === 'raw') {
+                    document.getElementById('genericWebhookBodyRaw').value = buildJsonFromFields();
+                } else {
+                    try {
+                        const raw = document.getElementById('genericWebhookBodyRaw').value;
+                        const obj = JSON.parse(raw);
+                        populateFieldsFromJson(obj);
+                    } catch (e) { /* keep existing fields */ }
+                }
+                updateJsonPreview();
+            }
+
+            function addJsonField(key, value) {
+                key = key || '';
+                value = value || '';
+                const container = document.getElementById('jsonFieldRows');
+                const row = document.createElement('div');
+                row.className = 'input-group input-group-sm mb-1';
+                row.innerHTML = `
+                    <input type="text" class="form-control" placeholder="key" value="${escapeHtml(key)}" onchange="syncJsonFields()" style="max-width: 35%;">
+                    <input type="text" class="form-control" placeholder="value（支持 \${var} 变量）" value="${escapeHtml(value)}" onchange="syncJsonFields()">
+                    <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove(); syncJsonFields();">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                `;
+                container.appendChild(row);
+                syncJsonFields();
+            }
+
+            function escapeHtml(str) {
+                return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            function buildJsonFromFields() {
+                const rows = document.querySelectorAll('#jsonFieldRows .input-group');
+                const obj = {};
+                rows.forEach(row => {
+                    const inputs = row.querySelectorAll('input[type="text"]');
+                    const k = inputs[0].value.trim();
+                    const v = inputs[1].value;
+                    if (k) obj[k] = v;
+                });
+                return JSON.stringify(obj, null, 2);
+            }
+
+            function syncJsonFields() {
+                const json = buildJsonFromFields();
+                document.getElementById('genericWebhookBodyHidden').value = json;
+                updateJsonPreview();
+            }
+
+            function populateFieldsFromJson(obj) {
+                const container = document.getElementById('jsonFieldRows');
+                container.innerHTML = '';
+                if (typeof obj === 'object' && obj !== null) {
+                    Object.entries(obj).forEach(([k, v]) => {
+                        addJsonField(k, typeof v === 'string' ? v : JSON.stringify(v));
+                    });
+                }
+            }
+
+            function updateJsonPreview() {
+                let json;
+                if (currentJsonMode === 'field') {
+                    json = buildJsonFromFields();
+                } else {
+                    json = document.getElementById('genericWebhookBodyRaw').value;
+                }
+                try {
+                    const obj = JSON.parse(json);
+                    const replaced = replaceVarsInObj(obj, SAMPLE_VARIABLES);
+                    // 提取纯文本预览（寻找常见内容字段）
+                    const content = replaced.content || replaced.text || replaced.message || replaced.body || JSON.stringify(replaced, null, 2);
+                    document.getElementById('genericWebhookPreview').textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+                } catch (e) {
+                    document.getElementById('genericWebhookPreview').textContent = '(JSON 解析失败)';
+                }
+            }
+
+            function replaceVarsInObj(obj, vars) {
+                if (typeof obj === 'string') {
+                    return obj.replace(/\$\{(\w+)\}/g, (m, name) => vars[name] !== undefined ? vars[name] : m);
+                } else if (Array.isArray(obj)) {
+                    return obj.map(item => replaceVarsInObj(item, vars));
+                } else if (typeof obj === 'object' && obj !== null) {
+                    const result = {};
+                    for (const [k, v] of Object.entries(obj)) {
+                        result[k] = replaceVarsInObj(v, vars);
+                    }
+                    return result;
+                }
+                return obj;
+            }
 
             // 初始化操作建议文本框
             document.addEventListener('DOMContentLoaded', function () {
@@ -955,6 +1195,23 @@
                         lines.push(`${action}: ${keywordStr}`);
                     }
                     textarea.value = lines.join('\n');
+                }
+
+                // 初始化 JSON 编辑器
+                try {
+                    const bodyObj = JSON.parse(INITIAL_WEBHOOK_BODY);
+                    populateFieldsFromJson(bodyObj);
+                } catch (e) {
+                    if (INITIAL_WEBHOOK_BODY) {
+                        addJsonField('content', INITIAL_WEBHOOK_BODY);
+                    }
+                }
+                updateJsonPreview();
+
+                // 监听原始 JSON 编辑器变更
+                const rawEditor = document.getElementById('genericWebhookBodyRaw');
+                if (rawEditor) {
+                    rawEditor.addEventListener('input', updateJsonPreview);
                 }
             });
         </script>

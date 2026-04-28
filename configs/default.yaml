@@ -1,4 +1,7 @@
 email:
+  custom_text: ''
+  custom_text_enabled: false
+  custom_text_mode: template
   enabled: true
   footer: 此邮件由 TaskNya 自动发送
   include_duration: true
@@ -87,6 +90,9 @@ monitor:
   timeout: 0
 webhook:
   color: green
+  custom_text: ''
+  custom_text_enabled: false
+  custom_text_mode: template
   enabled: true
   footer: 测试消息
   include_duration: true
@@ -108,3 +114,27 @@ webhook:
   include_start_time_title: 开始
   title: 测试通知
   url: https://test.webhook.url/hook
+wecom:
+  custom_text: ''
+  custom_text_enabled: false
+  custom_text_mode: template
+  enabled: false
+  include_duration: true
+  include_duration_title: 耗时
+  include_end_time: true
+  include_end_time_title: 结束
+  include_gpu_info: false
+  include_gpu_info_title: GPU
+  include_hostname: true
+  include_hostname_title: 主机
+  include_method: true
+  include_method_title: 方式
+  include_project_name: true
+  include_project_name_title: 项目
+  include_report_actions: true
+  include_report_details: true
+  include_report_summary: true
+  include_start_time: true
+  include_start_time_title: 开始
+  msg_type: markdown
+  url: ''

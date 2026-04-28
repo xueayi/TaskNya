@@ -27,6 +27,15 @@ CONFIG_DIR = os.path.join(PROJECT_ROOT, 'configs')
 DEFAULT_CONFIG_PATH = os.path.join(CONFIG_DIR, 'default.yaml')
 MAIN_SCRIPT_PATH = os.path.join(PROJECT_ROOT, 'main.py')
 LOG_DIR = os.path.join(PROJECT_ROOT, 'logs')
+VERSION_FILE = os.path.join(PROJECT_ROOT, 'VERSION')
+
+
+def _read_version() -> str:
+    try:
+        with open(VERSION_FILE, 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return 'dev'
 
 # 确保必要目录存在
 os.makedirs(CONFIG_DIR, exist_ok=True)
@@ -159,13 +168,16 @@ def create_app():
     # 配置管理器
     config_manager = ConfigManager(config_dir=CONFIG_DIR)
     
+    # 读取版本号
+    app_version = _read_version()
+    
     # 主页路由
     @app.route('/')
     def index():
         """主页路由"""
         config = config_manager.load_config()
         status = 'running' if monitor_state.is_running() else 'stopped'
-        return render_template('index.html', config=config, initial_status=status)
+        return render_template('index.html', config=config, initial_status=status, version=app_version)
     
     # WebSocket 路由
     @sock.route('/ws')

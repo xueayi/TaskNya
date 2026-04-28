@@ -6,8 +6,11 @@
 """
 
 import os
+import re
 from typing import Dict, Any, Optional, List
 from datetime import datetime
+
+from core.utils.anime_quote import get_anime_quote
 
 
 class MessageBuilder:
@@ -393,3 +396,43 @@ class MessageBuilder:
 """)
         
         return "".join(html_parts)
+    
+    def build_context(self, training_info: Dict[str, Any]) -> Dict[str, str]:
+        """构建变量替换上下文"""
+        context = {
+            "project_name": training_info.get("project_name", ""),
+            "start_time": training_info.get("start_time", ""),
+            "end_time": training_info.get("end_time", ""),
+            "duration": training_info.get("duration", ""),
+            "method": training_info.get("method", ""),
+            "hostname": training_info.get("hostname", ""),
+            "gpu_info": training_info.get("gpu_info", ""),
+            "detail": training_info.get("detail", ""),
+        }
+
+        report = training_info.get("report", {})
+        if report:
+            context.update({
+                "report_summary": report.get("summary", ""),
+                "report_actions": ", ".join(report.get("actions", [])),
+            })
+            if report.get("summary"):
+                context["detail"] = report["summary"]
+        else:
+            context["report_summary"] = "无"
+            context["report_actions"] = "无"
+
+        return context
+
+    @staticmethod
+    def replace_variables(template: str, context: Dict[str, str]) -> str:
+        """替换模板中的 ${var} 变量，自动检测并填充 anime_quote"""
+        if '${anime_quote}' in template:
+            context.setdefault("anime_quote", get_anime_quote())
+        else:
+            context.setdefault("anime_quote", "")
+
+        def replace(match):
+            var_name = match.group(1)
+            return str(context.get(var_name, match.group(0)))
+        return re.sub(r'\$\{(\w+)\}', replace, template)
