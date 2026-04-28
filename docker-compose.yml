@@ -5,7 +5,7 @@ services:
     image: xueayis/tasknya:latest
     container_name: tasknya
     ports:
-      - "5000:5000"
+      - "9870:9870"
     volumes:
       # 配置文件映射（此文件夹内必须有 default.yaml 文件）
       # - ./configs:/app/configs
@@ -22,13 +22,13 @@ services:
       - PYTHONPATH=/app
       # TaskNya 配置
       - TASKNYA_HOST=0.0.0.0
-      - TASKNYA_PORT=5000
+      - TASKNYA_PORT=9870
       - TASKNYA_DEBUG=0
       # 调试模式（取消注释以启用）
       # - TASKNYA_DEBUG=1
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/')"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:9870/')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -39,7 +39,7 @@ services:
   #   image: xueayis/tasknya:latest
   #   container_name: tasknya-debug
   #   ports:
-  #     - "5001:5000"
+  #     - "5001:9870"
   #   volumes:
   #     - ./configs:/app/configs
   #     - ./logs:/app/logs
