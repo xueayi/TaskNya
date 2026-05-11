@@ -244,7 +244,7 @@ class TrainingMonitor:
             elapsed_time += check_interval
             
             # 超时检查
-            if timeout and elapsed_time >= timeout:
+            if timeout is not None and isinstance(timeout, (int, float)) and elapsed_time >= timeout:
                 logger.warning(f"监控超时，已等待 {elapsed_time} 秒")
                 break
             
@@ -295,7 +295,14 @@ def main():
     parser.add_argument(
         "--trigger",
         action="store_true",
-        help="跳过监控，直接触发一次通知（用于测试通知渠道）",
+        help="跳过监控，直接向所有已启用渠道发送一次通知",
+    )
+    parser.add_argument(
+        "--test-channel",
+        type=str,
+        default=None,
+        choices=["webhook", "generic_webhook", "email", "wecom", "all"],
+        help="测试指定通知渠道（无视是否启用），可选: webhook, generic_webhook, email, wecom, all",
     )
     parser.add_argument(
         "--message",
@@ -305,6 +312,45 @@ def main():
     )
     
     args = parser.parse_args()
+    
+    if args.test_channel:
+        monitor = TrainingMonitor(config_path=args.config)
+        now = datetime.now()
+        training_info = monitor._message_builder.build_training_info(
+            start_time=now,
+            end_time=now,
+            project_name=monitor.config['monitor']['project_name'],
+            method="测试发送",
+            detail=args.message or "CLI 测试通知渠道",
+            gpu_info=None
+        )
+        
+        channel = args.test_channel
+        notifiers = {}
+        if channel in ("webhook", "all"):
+            cfg = dict(monitor.config.get('webhook', {}))
+            cfg['enabled'] = True
+            notifiers['飞书 Webhook'] = WebhookNotifier(cfg)
+        if channel in ("generic_webhook", "all"):
+            cfg = dict(monitor.config.get('generic_webhook', {}))
+            cfg['enabled'] = True
+            notifiers['通用 Webhook'] = GenericWebhookNotifier(cfg)
+        if channel in ("email", "all"):
+            cfg = dict(monitor.config.get('email', {}))
+            cfg['enabled'] = True
+            notifiers['邮件'] = EmailNotifier(cfg)
+        if channel in ("wecom", "all"):
+            cfg = dict(monitor.config.get('wecom', {}))
+            cfg['enabled'] = True
+            notifiers['企业微信'] = WeComNotifier(cfg)
+        
+        for name, notifier in notifiers.items():
+            logger.info(f"正在测试 [{name}] ...")
+            if notifier.send(training_info):
+                logger.info(f"[{name}] 发送成功")
+            else:
+                logger.warning(f"[{name}] 发送失败")
+        return
     
     if args.trigger:
         monitor = TrainingMonitor(config_path=args.config)

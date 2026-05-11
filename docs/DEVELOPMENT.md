@@ -7,6 +7,7 @@
 ## 目录
 
 - [项目概览](#项目概览)
+- [版本号管理与发布流程](#版本号管理与发布流程)
 - [架构设计](#架构设计)
     - [目录结构](#目录结构)
     - [核心数据流](#核心数据流)
@@ -31,6 +32,43 @@
 - **前端**: Vanilla JS, Bootstrap 5, BiIcons
 - **通知**: `WeComNotifier` 为企业微信群机器人通知器；`MessageBuilder` 提供统一的变量替换入口（`replace_variables` / `build_context`），供各渠道复用。
 - **配置校验**: 时间类字段在验证链路中通过 `parse_time_to_seconds` 解析，支持 `1h30m` 等人性化时长写法（与纯秒数兼容）。
+
+---
+
+## 版本号管理与发布流程
+
+### 版本号来源
+
+项目版本号的**唯一来源**为仓库根目录下的 `VERSION` 文件（当前：`1.2.0`）。运行中的程序与 Web UI 均**运行时读取**该文件，不在代码中手写死版本号。
+
+### 本地开发时更新版本号
+
+修改根目录 **`VERSION`** 文件中的版本字符串即可（如 `1.3.0`），**无需**再改其它源码文件。Web UI 页脚通过 `app/app.py` 中的 `_read_version()` 读取该文件内容并展示。
+
+### CI/CD 自动发布流程
+
+发布流水线定义在 `.github/workflows/main_workflow.yml`。
+
+**触发条件**：向远程仓库推送符合 `v*` 命名的 **Git tag**（例如 `v1.3.0`）。
+
+**Job 概要**：
+
+1. **`build-docker`**（Ubuntu）：Checkout 后执行 `python scripts/update_version.py <tag>`，将 tag 对应的版本写入根目录 **`VERSION`**；登录 Docker Hub，构建并推送镜像 **`xueayis/tasknya:latest`** 与同 tag 的版本标签 **`xueayis/tasknya:v1.3.0`**（标签名与所推 tag 一致）。
+2. **`build-exe`**（Windows）：同样先运行 `scripts/update_version.py` 刷新 **`VERSION`**，再用 PyInstaller 按 `TaskNya.spec` 构建 Windows 可执行文件，并按 tag 命名产物。
+3. **`create-release`**（Ubuntu，依赖前两步）：拉取 exe 工件，拼装 Release 正文并创建 **GitHub Release**，将 exe 作为附件上传。
+
+其中 **`scripts/update_version.py`** 在 CI 中负责把 **`vX.Y.Z` 格式的 tag 规范化为 `X.Y.Z`** 并写入 **`VERSION`** 文件（单一事实来源与各处的动态读取保持一致）。
+
+### 发布新版本的推荐步骤
+
+```
+1. 更新 VERSION 文件为新版本号（如 1.3.0）
+2. 提交代码：git add . && git commit -m "release: v1.3.0"
+3. 创建并推送 tag：git tag v1.3.0 && git push origin v1.3.0
+4. CI/CD 自动构建镜像、exe，并创建 GitHub Release
+```
+
+若在发布时需要附带由你撰写的变更说明，可在仓库根目录准备 **`RELEASE_NOTES.md`**；`create-release` 阶段会将该文件内容并入 Release 正文（若文件不存在则仅使用自动生成的基础说明）。
 
 ---
 

@@ -65,7 +65,9 @@ class ConfigManager:
                 logger.info(f"成功加载配置文件: {config_path}")
                 
                 # 与默认配置合并
-                return self.merge_config(user_config, DEFAULT_CONFIG)
+                merged = self.merge_config(user_config, DEFAULT_CONFIG)
+                self.validate_config(merged)
+                return merged
                 
         except FileNotFoundError:
             logger.warning(f"配置文件不存在: {config_path}，使用默认配置")
@@ -167,8 +169,12 @@ class ConfigManager:
                 monitor['check_interval'] = parse_time_to_seconds(monitor['check_interval'])
             if 'logprint' in monitor:
                 monitor['logprint'] = parse_time_to_seconds(monitor['logprint'])
-            if 'timeout' in monitor and monitor['timeout'] is not None and monitor['timeout'] != 'None':
-                monitor['timeout'] = parse_time_to_seconds(monitor['timeout'])
+            if 'timeout' in monitor:
+                val = monitor['timeout']
+                if val is None or val == 'None' or val == 'none' or val == '' or val == 0:
+                    monitor['timeout'] = None
+                else:
+                    monitor['timeout'] = parse_time_to_seconds(val)
             if 'check_gpu_power_threshold' in monitor:
                 monitor['check_gpu_power_threshold'] = float(monitor['check_gpu_power_threshold'])
             if 'check_gpu_power_consecutive_checks' in monitor:

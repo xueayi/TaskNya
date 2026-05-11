@@ -140,13 +140,24 @@
                                                 <label class="form-label">检查间隔</label>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="bi bi-clock"></i></span>
-                                                    <input type="text" class="form-control"
-                                                        name="monitor.check_interval"
-                                                        value="{{ config.monitor.check_interval }}"
-                                                        placeholder="例如: 60 或 1h30m">
+                                                    <input type="number" class="form-control time-input-value" min="1" step="1"
+                                                        id="check_interval_value"
+                                                        data-target="check_interval"
+                                                        oninput="syncTimeInput('check_interval')"
+                                                        placeholder="数值">
+                                                    <select class="form-select time-input-unit" style="max-width: 90px;"
+                                                        id="check_interval_unit"
+                                                        data-target="check_interval"
+                                                        onchange="syncTimeInput('check_interval')">
+                                                        <option value="s">秒</option>
+                                                        <option value="m">分</option>
+                                                        <option value="h">时</option>
+                                                    </select>
                                                 </div>
-                                                <div class="form-text">支持秒数或时分格式（如
-                                                    <code>90</code>、<code>1h30m</code>、<code>30m5s</code>）
+                                                <input type="hidden" name="monitor.check_interval" id="check_interval_hidden"
+                                                    value="{{ config.monitor.check_interval }}">
+                                                <div class="form-text">
+                                                    <span id="check_interval_hint" class="text-muted"></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -155,11 +166,24 @@
                                                 <label class="form-label">日志打印间隔</label>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="bi bi-printer"></i></span>
-                                                    <input type="text" class="form-control" name="monitor.logprint"
-                                                        value="{{ config.monitor.logprint }}" placeholder="例如: 60 或 5m">
+                                                    <input type="number" class="form-control time-input-value" min="1" step="1"
+                                                        id="logprint_value"
+                                                        data-target="logprint"
+                                                        oninput="syncTimeInput('logprint')"
+                                                        placeholder="数值">
+                                                    <select class="form-select time-input-unit" style="max-width: 90px;"
+                                                        id="logprint_unit"
+                                                        data-target="logprint"
+                                                        onchange="syncTimeInput('logprint')">
+                                                        <option value="s">秒</option>
+                                                        <option value="m">分</option>
+                                                        <option value="h">时</option>
+                                                    </select>
                                                 </div>
-                                                <div class="form-text">支持秒数或时分格式（如
-                                                    <code>60</code>、<code>5m</code>、<code>1h</code>）
+                                                <input type="hidden" name="monitor.logprint" id="logprint_hidden"
+                                                    value="{{ config.monitor.logprint }}">
+                                                <div class="form-text">
+                                                    <span id="logprint_hint" class="text-muted"></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -167,13 +191,30 @@
                                             <div class="mb-3">
                                                 <label class="form-label">监控持续时间</label>
                                                 <div class="input-group">
-                                                    <span class="input-group-text"><i
-                                                            class="bi bi-hourglass-split"></i></span>
-                                                    <input type="text" class="form-control" name="monitor.timeout"
-                                                        value="{{ config.monitor.timeout or 'None' }}"
-                                                        placeholder="None 或 1h">
+                                                    <span class="input-group-text"><i class="bi bi-hourglass-split"></i></span>
+                                                    <input type="number" class="form-control time-input-value" min="0" step="1"
+                                                        id="timeout_value"
+                                                        data-target="timeout"
+                                                        oninput="syncTimeInput('timeout')"
+                                                        placeholder="无限制">
+                                                    <select class="form-select time-input-unit" style="max-width: 90px;"
+                                                        id="timeout_unit"
+                                                        data-target="timeout"
+                                                        onchange="syncTimeInput('timeout')">
+                                                        <option value="s">秒</option>
+                                                        <option value="m">分</option>
+                                                        <option value="h">时</option>
+                                                    </select>
+                                                    <button type="button" class="btn btn-outline-secondary" style="max-width: 70px;"
+                                                        onclick="clearTimeoutInput()" title="设为无限制">
+                                                        <i class="bi bi-infinity"></i>
+                                                    </button>
                                                 </div>
-                                                <div class="form-text">设置为 <code>None</code> 表示无超时限制，支持时分格式</div>
+                                                <input type="hidden" name="monitor.timeout" id="timeout_hidden"
+                                                    value="{{ config.monitor.timeout }}">
+                                                <div class="form-text">
+                                                    <span id="timeout_hint" class="text-muted">设为空或点击 ∞ 表示无超时限制</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -836,10 +877,16 @@
                                             <i class="bi bi-bell"></i> 飞书机器人通知
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
-                                        onclick="removeModuleCard(this)" title="移除">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-info test-notify-btn"
+                                            onclick="testNotification('webhook', this)" title="测试发送">
+                                            <i class="bi bi-send"></i> 测试
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                            onclick="removeModuleCard(this)" title="移除">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
@@ -934,10 +981,16 @@
                                             <i class="bi bi-envelope"></i> 邮件通知
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
-                                        onclick="removeModuleCard(this)" title="移除">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-info test-notify-btn"
+                                            onclick="testNotification('email', this)" title="测试发送">
+                                            <i class="bi bi-send"></i> 测试
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                            onclick="removeModuleCard(this)" title="移除">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -1041,10 +1094,16 @@
                                             <i class="bi bi-wechat"></i> 企业微信通知
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
-                                        onclick="removeModuleCard(this)" title="移除">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-info test-notify-btn"
+                                            onclick="testNotification('wecom', this)" title="测试发送">
+                                            <i class="bi bi-send"></i> 测试
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                            onclick="removeModuleCard(this)" title="移除">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
@@ -1126,10 +1185,16 @@
                                             <i class="bi bi-link-45deg"></i> 通用 Webhook
                                         </label>
                                     </div>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
-                                        onclick="removeModuleCard(this)" title="移除">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-info test-notify-btn"
+                                            onclick="testNotification('generic_webhook', this)" title="测试发送">
+                                            <i class="bi bi-send"></i> 测试
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary module-remove-btn"
+                                            onclick="removeModuleCard(this)" title="移除">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -1178,11 +1243,41 @@
                                         </div>
                                     </div>
 
-                                    <!-- 自定义模式 -->
+                                    <!-- 请求头编辑器 -->
                                     <div class="mb-3" id="custom_body_section">
-                                        <label class="form-label">请求头 (JSON)</label>
-                                        <textarea class="form-control" name="generic_webhook.headers" rows="2"
-                                            placeholder='{"Content-Type": "application/json"}'>{{ config.generic_webhook.headers | tojson if config.generic_webhook.headers else '{"Content-Type": "application/json"}' }}</textarea>
+                                        <label class="form-label">请求头</label>
+                                        <div class="mb-2">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <input type="radio" class="btn-check" name="headersEditorMode" id="headersFieldMode" checked
+                                                    onchange="switchHeadersEditorMode('field')">
+                                                <label class="btn btn-outline-primary" for="headersFieldMode">
+                                                    <i class="bi bi-list-ul"></i> 字段编辑器
+                                                </label>
+                                                <input type="radio" class="btn-check" name="headersEditorMode" id="headersRawMode"
+                                                    onchange="switchHeadersEditorMode('raw')">
+                                                <label class="btn btn-outline-primary" for="headersRawMode">
+                                                    <i class="bi bi-code-slash"></i> 原始 JSON
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- 字段编辑器模式 -->
+                                        <div id="headersFieldEditor">
+                                            <div id="headersFieldRows"></div>
+                                            <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="addHeaderField()">
+                                                <i class="bi bi-plus-circle"></i> 添加请求头
+                                            </button>
+                                        </div>
+
+                                        <!-- 原始 JSON 模式 -->
+                                        <div id="headersRawEditor" style="display:none;">
+                                            <textarea class="form-control" id="headersRawTextarea" name="generic_webhook.headers" rows="3"
+                                                placeholder='{"Content-Type": "application/json", "Authorization": "Bearer xxx"}'>{{ config.generic_webhook.headers | tojson if config.generic_webhook.headers else '{"Content-Type": "application/json"}' }}</textarea>
+                                        </div>
+
+                                        <!-- 隐藏字段，字段编辑器模式下存储序列化后的 JSON -->
+                                        <input type="hidden" id="headersHiddenField" name="generic_webhook.headers"
+                                            value="{{ config.generic_webhook.headers | tojson if config.generic_webhook.headers else '{\"Content-Type\": \"application/json\"}' }}">
                                     </div>
 
 
@@ -1298,6 +1393,7 @@
         <script>
             const INITIAL_ACTION_KEYWORDS = {{ config.monitor.check_directory_action_keywords | tojson }};
             const INITIAL_WEBHOOK_BODY = {{ config.generic_webhook.body | tojson }};
+            const INITIAL_HEADERS = {{ config.generic_webhook.headers | tojson if config.generic_webhook.headers else '{"Content-Type": "application/json"}' }};
             const INITIAL_LOG_MARKERS = {{ config.monitor.check_log_markers | tojson }};
             const INITIAL_EXCLUDE_KEYWORDS = {{ config.monitor.check_directory_exclude_keywords | tojson }};
             const INITIAL_HTTP_KEYWORDS = {{ config.monitor.check_http_expected_keywords | tojson }};
@@ -1413,6 +1509,145 @@
                 }
             }
 
+            // === 时间输入组件 ===
+            function parseSecondsToDisplay(totalSeconds) {
+                if (totalSeconds === null || totalSeconds === undefined || totalSeconds === '' || totalSeconds === 'None' || totalSeconds === 'none') {
+                    return { value: '', unit: 'm' };
+                }
+                const s = parseInt(totalSeconds);
+                if (isNaN(s) || s <= 0) return { value: '', unit: 'm' };
+
+                if (s >= 3600 && s % 3600 === 0) return { value: s / 3600, unit: 'h' };
+                if (s >= 60 && s % 60 === 0) return { value: s / 60, unit: 'm' };
+                return { value: s, unit: 's' };
+            }
+
+            function syncTimeInput(fieldId) {
+                const valueEl = document.getElementById(fieldId + '_value');
+                const unitEl = document.getElementById(fieldId + '_unit');
+                const hiddenEl = document.getElementById(fieldId + '_hidden');
+                const hintEl = document.getElementById(fieldId + '_hint');
+
+                const rawValue = valueEl.value.trim();
+
+                if (fieldId === 'timeout' && rawValue === '') {
+                    hiddenEl.value = '';
+                    if (hintEl) hintEl.textContent = '无超时限制';
+                    return;
+                }
+
+                const num = parseFloat(rawValue);
+                if (isNaN(num) || num < 0) {
+                    hiddenEl.value = rawValue || '';
+                    if (hintEl) hintEl.textContent = '';
+                    return;
+                }
+
+                const unit = unitEl.value;
+                let seconds = num;
+                if (unit === 'm') seconds = num * 60;
+                else if (unit === 'h') seconds = num * 3600;
+
+                hiddenEl.value = Math.round(seconds);
+
+                if (hintEl) {
+                    const parts = [];
+                    const totalSec = Math.round(seconds);
+                    const h = Math.floor(totalSec / 3600);
+                    const m = Math.floor((totalSec % 3600) / 60);
+                    const sec = totalSec % 60;
+                    if (h > 0) parts.push(h + ' 小时');
+                    if (m > 0) parts.push(m + ' 分钟');
+                    if (sec > 0 || parts.length === 0) parts.push(sec + ' 秒');
+                    hintEl.textContent = '= ' + parts.join(' ') + '（' + totalSec + ' 秒）';
+                }
+            }
+
+            function clearTimeoutInput() {
+                document.getElementById('timeout_value').value = '';
+                document.getElementById('timeout_hidden').value = '';
+                const hintEl = document.getElementById('timeout_hint');
+                if (hintEl) hintEl.textContent = '无超时限制';
+            }
+
+            function initTimeInput(fieldId, rawSeconds) {
+                const display = parseSecondsToDisplay(rawSeconds);
+                const valueEl = document.getElementById(fieldId + '_value');
+                const unitEl = document.getElementById(fieldId + '_unit');
+                if (valueEl && display.value !== '') {
+                    valueEl.value = display.value;
+                }
+                if (unitEl) {
+                    unitEl.value = display.unit;
+                }
+                syncTimeInput(fieldId);
+            }
+
+            // === 请求头编辑器 ===
+            let currentHeadersMode = 'field';
+
+            function switchHeadersEditorMode(mode) {
+                currentHeadersMode = mode;
+                document.getElementById('headersFieldEditor').style.display = mode === 'field' ? 'block' : 'none';
+                document.getElementById('headersRawEditor').style.display = mode === 'raw' ? 'block' : 'none';
+                document.getElementById('headersHiddenField').name = mode === 'field' ? 'generic_webhook.headers' : '';
+                document.getElementById('headersRawTextarea').name = mode === 'raw' ? 'generic_webhook.headers' : '';
+                if (mode === 'raw') {
+                    document.getElementById('headersRawTextarea').value = buildHeadersFromFields();
+                } else {
+                    try {
+                        const raw = document.getElementById('headersRawTextarea').value;
+                        const obj = JSON.parse(raw);
+                        populateHeaderFieldsFromJson(obj);
+                    } catch (e) { /* keep existing fields */ }
+                }
+            }
+
+            function addHeaderField(key, value) {
+                key = key || '';
+                value = value || '';
+                const container = document.getElementById('headersFieldRows');
+                const row = document.createElement('div');
+                row.className = 'input-group input-group-sm mb-1';
+                row.innerHTML = `
+                    <input type="text" class="form-control" placeholder="Header Name" value="${escapeHtml(key)}" onchange="syncHeaderFields()" style="max-width: 35%;">
+                    <input type="text" class="form-control" placeholder="Header Value" value="${escapeHtml(value)}" onchange="syncHeaderFields()">
+                    <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove(); syncHeaderFields();">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                `;
+                container.appendChild(row);
+                syncHeaderFields();
+            }
+
+            function buildHeadersFromFields() {
+                const rows = document.querySelectorAll('#headersFieldRows .input-group');
+                const obj = {};
+                rows.forEach(row => {
+                    const inputs = row.querySelectorAll('input[type="text"]');
+                    const k = inputs[0].value.trim();
+                    const v = inputs[1].value;
+                    if (k) obj[k] = v;
+                });
+                return JSON.stringify(obj, null, 2);
+            }
+
+            function syncHeaderFields() {
+                const json = buildHeadersFromFields();
+                document.getElementById('headersHiddenField').value = json;
+            }
+
+            function populateHeaderFieldsFromJson(obj) {
+                const container = document.getElementById('headersFieldRows');
+                container.innerHTML = '';
+                if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
+                    Object.entries(obj).forEach(([k, v]) => {
+                        addHeaderField(k, typeof v === 'string' ? v : JSON.stringify(v));
+                    });
+                }
+            }
+
+            // === Body JSON 编辑器 ===
             let currentJsonMode = 'field';
 
             function switchJsonEditorMode(mode) {
@@ -1533,8 +1768,21 @@
                     INITIAL_HTTP_KEYWORDS.forEach(v => addTagRow('httpKeywordRows', v));
                 }
 
+                // 初始化时间输入组件
+                initTimeInput('check_interval', {{ config.monitor.check_interval | tojson }});
+                initTimeInput('logprint', {{ config.monitor.logprint | tojson }});
+                initTimeInput('timeout', {{ config.monitor.timeout | tojson }});
+
                 // 初始化模块可见性
                 initModuleVisibility();
+
+                // 初始化 Headers 字段编辑器
+                try {
+                    const headersObj = typeof INITIAL_HEADERS === 'string' ? JSON.parse(INITIAL_HEADERS) : INITIAL_HEADERS;
+                    populateHeaderFieldsFromJson(headersObj);
+                } catch (e) {
+                    addHeaderField('Content-Type', 'application/json');
+                }
 
                 // 初始化 JSON 编辑器
                 try {
@@ -1546,6 +1794,14 @@
                     }
                 }
                 updateJsonPreview();
+
+                // 监听 Headers 原始编辑器变更
+                const headersRawEditor = document.getElementById('headersRawTextarea');
+                if (headersRawEditor) {
+                    headersRawEditor.addEventListener('input', function() {
+                        document.getElementById('headersHiddenField').value = this.value;
+                    });
+                }
 
                 // 监听原始 JSON 编辑器变更
                 const rawEditor = document.getElementById('genericWebhookBodyRaw');

@@ -6,9 +6,13 @@
 """
 
 import os
+import sys
 import pytest
 import tempfile
 import yaml
+
+# 添加项目根目录到 Python 路径
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.config import ConfigManager, DEFAULT_CONFIG
 
@@ -196,3 +200,53 @@ class TestConfigManager:
         loaded = manager.load_config(os.path.join(temp_dir, "test_keywords.yaml"))
         assert loaded["monitor"]["check_directory_exclude_keywords"] == keywords
         assert isinstance(loaded["monitor"]["check_directory_exclude_keywords"], list)
+
+    def test_validate_config_timeout_none_string(self):
+        """timeout 为字符串 'None' 时应归一化为 Python None"""
+        config = {
+            "monitor": {"timeout": "None"},
+            "webhook": {"enabled": False},
+        }
+        assert ConfigManager.validate_config(config) is True
+        assert config["monitor"]["timeout"] is None
+
+    def test_validate_config_timeout_null(self):
+        """timeout 为 None 时应保持为 None"""
+        config = {
+            "monitor": {"timeout": None},
+            "webhook": {"enabled": False},
+        }
+        assert ConfigManager.validate_config(config) is True
+        assert config["monitor"]["timeout"] is None
+
+    def test_validate_config_timeout_empty_string(self):
+        """timeout 为空字符串时应归一化为 None"""
+        config = {
+            "monitor": {"timeout": ""},
+            "webhook": {"enabled": False},
+        }
+        assert ConfigManager.validate_config(config) is True
+        assert config["monitor"]["timeout"] is None
+
+    def test_validate_config_timeout_zero(self):
+        """timeout 为 0 时应归一化为 None"""
+        config = {
+            "monitor": {"timeout": 0},
+            "webhook": {"enabled": False},
+        }
+        assert ConfigManager.validate_config(config) is True
+        assert config["monitor"]["timeout"] is None
+
+    def test_load_config_validates_timeout(self, temp_dir):
+        """load_config 加载后应对 timeout 调用 validate_config 做类型归一化"""
+        path = os.path.join(temp_dir, "timeout_normalize.yaml")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(
+                "monitor:\n"
+                "  timeout: 'None'\n"
+                "webhook:\n"
+                "  enabled: false\n"
+            )
+        manager = ConfigManager(config_dir=temp_dir)
+        loaded = manager.load_config(path)
+        assert loaded["monitor"]["timeout"] is None

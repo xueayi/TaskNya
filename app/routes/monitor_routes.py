@@ -154,6 +154,109 @@ def get_status():
     })
 
 
+@trigger_bp.route('/test-notification/<channel>', methods=['POST'])
+def test_notification(channel):
+    """
+    测试指定通知渠道（无视 enabled 状态，使用请求体中的配置）
+
+    URL 参数:
+        channel: webhook | generic_webhook | email | wecom
+
+    Body JSON:
+        { "config": { ... 完整表单配置 ... } }
+    """
+    valid_channels = {'webhook', 'generic_webhook', 'email', 'wecom'}
+    if channel not in valid_channels:
+        return jsonify({
+            'status': 'error',
+            'message': f'无效的通知渠道: {channel}，可选: {", ".join(valid_channels)}'
+        }), 400
+
+    body = request.get_json(silent=True) or {}
+    form_config = body.get('config', {})
+
+    channel_config = dict(form_config.get(channel, {}))
+    if not channel_config:
+        config_manager = ConfigManager(config_dir=CONFIG_DIR)
+        saved = config_manager.load_config()
+        channel_config = dict(saved.get(channel, {}))
+
+    channel_config['enabled'] = True
+
+    webhook_config = form_config.get('webhook', channel_config)
+
+    now = datetime.now()
+    msg_builder = MessageBuilder(webhook_config if channel != 'generic_webhook' else channel_config)
+    project_name = form_config.get('monitor', {}).get('project_name', '测试项目')
+    training_info = msg_builder.build_training_info(
+        start_time=now,
+        end_time=now,
+        project_name=project_name,
+        method="测试发送",
+        detail="通知渠道测试消息",
+        gpu_info=None,
+    )
+
+    channel_names = {
+        'webhook': '飞书 Webhook',
+        'generic_webhook': '通用 Webhook',
+        'email': '邮件',
+        'wecom': '企业微信',
+    }
+
+    try:
+        notifier_classes = {
+            'webhook': WebhookNotifier,
+            'generic_webhook': GenericWebhookNotifier,
+            'email': EmailNotifier,
+            'wecom': WeComNotifier,
+        }
+
+        notifier = notifier_classes[channel](channel_config)
+
+        if not notifier.enabled:
+            missing = []
+            if channel == 'webhook' and not channel_config.get('url'):
+                missing.append('Webhook URL')
+            elif channel == 'generic_webhook' and not channel_config.get('url'):
+                missing.append('Webhook URL')
+            elif channel == 'email':
+                if not channel_config.get('smtp_server'):
+                    missing.append('SMTP 服务器')
+                if not channel_config.get('smtp_user'):
+                    missing.append('SMTP 用户名')
+                if not channel_config.get('recipient'):
+                    missing.append('收件人')
+            elif channel == 'wecom' and not channel_config.get('url'):
+                missing.append('Webhook URL')
+
+            hint = f'缺少必要配置: {", ".join(missing)}' if missing else '配置不完整'
+            return jsonify({
+                'status': 'error',
+                'message': f'{channel_names[channel]}测试失败: {hint}'
+            }), 400
+
+        success = notifier.send(training_info)
+
+        if success:
+            return jsonify({
+                'status': 'success',
+                'message': f'{channel_names[channel]}测试发送成功'
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': f'{channel_names[channel]}测试发送失败，请检查日志'
+            }), 500
+
+    except Exception as e:
+        logger.error(f"测试通知发送异常: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': f'{channel_names[channel]}测试异常: {str(e)}'
+        }), 500
+
+
 @trigger_bp.route('/trigger', methods=['POST'])
 def trigger_notification():
     """

@@ -7,15 +7,62 @@ python main.py                              # 默认配置 configs/default.yaml
 python main.py --config configs/my.yaml     # 指定配置
 ```
 
-## 手动触发通知
+## 手动触发
 
-跳过检测流程，直接发送一次通知（用于测试通知渠道）。
+`--trigger` 会**跳过全部监控逻辑**，不向监控器轮询检测；而是按当前配置**直接走一遍「发送通知」流程**，效果类似任务被判定为结束时的一次性通知。**只会向配置文件里「已启用」的通知渠道投递**（飞书 Webhook、通用 Webhook、邮件、企业微信等，依你在 YAML 中的开关为准）。
+
+适合在流水线、运维脚本或本机场景中，在**无须常驻监控进程**的前提下发一次通知，例如：**部署上线完成**、里程碑节点、或对「整套已启用渠道的正式通知链路」做一次手动物理触发。
 
 ```bash
 python main.py --trigger                           # 默认配置
 python main.py --trigger --config configs/my.yaml  # 指定配置
-python main.py --trigger --message "部署完成"       # 自定义消息
+python main.py --trigger --message "部署完成"       # 自定义消息文案
+python main.py --trigger --config prod.yaml --message "训练任务已由 CI 收口"
 ```
+
+## 测试通知渠道
+
+`--test-channel` 用于**单独调试某一类通知渠道的连通性与展示效果**。程序不会启动监控循环，只对选中的渠道（或全部）做一次测试投递。
+
+**参数取值**（任选其一）：
+
+| 取值 | 说明 |
+|------|------|
+| `webhook` | 飞书 Webhook |
+| `generic_webhook` | 通用 Webhook |
+| `email` | 邮件（SMTP） |
+| `wecom` | 企业微信 |
+| `all` | 以上渠道各测一遍（配置了才会实际发送对应渠道） |
+
+**行为要点**：
+
+- **与「启用」开关无关**：测试路径会按需临时视为已启用，**只要在配置里填好了该渠道的必填项**，就会尝试发送；便于在渠道尚未勾选「启用」时先验收。
+- 可配合 **`--message`** 自定义测试文案（未指定时使用内置默认测试说明）。
+- 可配合 **`--config`** 指定 YAML，与启动监控、手动触发一致。
+
+**示例**：
+
+```bash
+# 使用默认 configs/default.yaml，仅测飞书
+python main.py --test-channel webhook
+
+# 指定配置文件，测通用 Webhook
+python main.py --test-channel generic_webhook --config configs/staging.yaml
+
+# 测邮件，并自定义正文
+python main.py --test-channel email --message "SMTP 与模板自检"
+
+# 测企业微信
+python main.py --test-channel wecom
+
+# 依次测试（配置里写全了的）所有渠道
+python main.py --test-channel all
+
+# 组合：自定义配置 + 自定义消息 + 全渠道冒烟
+python main.py --test-channel all --config configs/prod.yaml --message "生产环境渠道连通性检查"
+```
+
+在 **Web UI** 中，各通知区块旁有 **「测试」** 按钮：会用**当前表单里已填写的配置**发起一次测试请求（通过 `/api/test-notification/<channel>`），**无需先点击保存**；与 CLI 的 `--test-channel` 目的一致，只是配置来源为页面表单而非 YAML 文件。
 
 ## Web UI
 

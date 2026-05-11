@@ -11,6 +11,7 @@ import pytest
 import json
 import tempfile
 import shutil
+from unittest.mock import MagicMock, patch
 
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -185,3 +186,108 @@ class TestIndexRoute:
         html = response.data.decode('utf-8')
         # 应该包含 HTML 结构
         assert '<html' in html or '<!DOCTYPE' in html
+
+
+class TestNotificationTestRoutes:
+    """通知渠道测试 API：POST /api/test-notification 加渠道名路径参数"""
+
+    def test_test_notification_invalid_channel(self, app_client):
+        """无效渠道名应返回 400"""
+        response = app_client.post(
+            "/api/test-notification/not_a_channel",
+            data=json.dumps({"config": {"monitor": {"project_name": "测试"}}}),
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data["status"] == "error"
+        assert "无效的通知渠道" in data["message"]
+
+    def test_test_notification_webhook_missing_url(self, app_client):
+        """webhook 缺少 URL 时应返回 400 并提示 Webhook URL"""
+        response = app_client.post(
+            "/api/test-notification/webhook",
+            data=json.dumps(
+                {
+                    "config": {
+                        "webhook": {"url": ""},
+                        "monitor": {"project_name": "测试"},
+                    }
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data["status"] == "error"
+        assert "Webhook URL" in data["message"] or "缺少必要配置" in data["message"]
+
+    def test_test_notification_email_missing_config(self, app_client):
+        """email 缺少必要配置时应返回 400"""
+        response = app_client.post(
+            "/api/test-notification/email",
+            data=json.dumps(
+                {
+                    "config": {
+                        "email": {
+                            "smtp_user": "user@example.com",
+                            "recipient": "to@example.com",
+                        },
+                        "monitor": {"project_name": "测试"},
+                    }
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert data["status"] == "error"
+        assert "SMTP 服务器" in data["message"]
+
+    def test_test_notification_webhook_success(self, app_client, mock_requests_post):
+        """有效 webhook 配置且 requests.post 成功时应返回 200"""
+        response = app_client.post(
+            "/api/test-notification/webhook",
+            data=json.dumps(
+                {
+                    "config": {
+                        "webhook": {
+                            "url": "https://example.com/feishu-hook",
+                            "title": "测试",
+                        },
+                        "monitor": {"project_name": "测试"},
+                    }
+                }
+            ),
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "success"
+        mock_requests_post.assert_called()
+
+    def test_test_notification_generic_webhook_success(self, app_client):
+        """有效 generic_webhook 配置时应返回 200（实现使用 requests.request）"""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = "ok"
+        with patch("requests.request", return_value=mock_response) as mock_req:
+            response = app_client.post(
+                "/api/test-notification/generic_webhook",
+                data=json.dumps(
+                    {
+                        "config": {
+                            "generic_webhook": {
+                                "url": "https://example.com/generic-hook",
+                                "method": "POST",
+                            },
+                            "monitor": {"project_name": "测试"},
+                        }
+                    }
+                ),
+                content_type="application/json",
+            )
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["status"] == "success"
+        mock_req.assert_called()

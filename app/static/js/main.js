@@ -210,6 +210,34 @@ async function loadConfig(filename) {
             });
 
             initModuleVisibility();
+
+            // 重新初始化时间输入组件
+            if (typeof initTimeInput === 'function') {
+                initTimeInput('check_interval', config.monitor.check_interval);
+                initTimeInput('logprint', config.monitor.logprint);
+                initTimeInput('timeout', config.monitor.timeout);
+            }
+
+            // 重新初始化 Headers 字段编辑器
+            if (typeof populateHeaderFieldsFromJson === 'function' && config.generic_webhook) {
+                const headers = config.generic_webhook.headers;
+                if (headers) {
+                    try {
+                        const headersObj = typeof headers === 'string' ? JSON.parse(headers) : headers;
+                        populateHeaderFieldsFromJson(headersObj);
+                    } catch (e) { /* keep existing */ }
+                }
+            }
+
+            // 重新初始化 Body JSON 编辑器
+            if (typeof populateFieldsFromJson === 'function' && config.generic_webhook && config.generic_webhook.body) {
+                try {
+                    const bodyObj = JSON.parse(config.generic_webhook.body);
+                    populateFieldsFromJson(bodyObj);
+                } catch (e) { /* keep existing */ }
+                if (typeof updateJsonPreview === 'function') updateJsonPreview();
+            }
+
             if (typeof updateFeishuPreview === 'function') updateFeishuPreview();
             if (typeof updateWecomPreview === 'function') updateWecomPreview();
 
@@ -550,6 +578,48 @@ function collectFormData() {
     });
 
     return config;
+}
+
+// 测试指定通知渠道
+async function testNotification(channel, btnEl) {
+    const originalHtml = btnEl.innerHTML;
+    btnEl.disabled = true;
+    btnEl.innerHTML = '<i class="bi bi-arrow-repeat spin-icon"></i> 发送中...';
+
+    const config = getFormData();
+
+    try {
+        const response = await fetch(`/api/test-notification/${channel}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ config: config })
+        });
+
+        const result = await response.json();
+        if (result.status === 'success') {
+            btnEl.innerHTML = '<i class="bi bi-check-lg"></i> 成功';
+            btnEl.classList.remove('btn-outline-info');
+            btnEl.classList.add('btn-success');
+            appendLog('[测试] ' + result.message);
+        } else {
+            btnEl.innerHTML = '<i class="bi bi-x-lg"></i> 失败';
+            btnEl.classList.remove('btn-outline-info');
+            btnEl.classList.add('btn-danger');
+            appendLog('[测试] ' + result.message);
+        }
+    } catch (error) {
+        btnEl.innerHTML = '<i class="bi bi-x-lg"></i> 错误';
+        btnEl.classList.remove('btn-outline-info');
+        btnEl.classList.add('btn-danger');
+        appendLog('[测试] 请求失败: ' + error.message);
+    }
+
+    setTimeout(() => {
+        btnEl.innerHTML = originalHtml;
+        btnEl.disabled = false;
+        btnEl.classList.remove('btn-success', 'btn-danger');
+        btnEl.classList.add('btn-outline-info');
+    }, 3000);
 }
 
 function toggleCustomTextArea(channel) {

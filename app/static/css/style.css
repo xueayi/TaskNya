@@ -318,6 +318,29 @@ body {
     opacity: 1;
 }
 
+.time-input-unit {
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
+
+.test-notify-btn {
+    flex-shrink: 0;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    border-radius: 4px;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.spin-icon {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
 /* 响应式优化 */
 @media (max-width: 576px) {
     .col-md-4, .col-md-6, .col-md-8 {
