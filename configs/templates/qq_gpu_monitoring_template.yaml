@@ -1,0 +1,49 @@
+# QQ GPU 功耗监控通知模板
+# 使用说明：复制此文件并替换 <PLACEHOLDER> 为实际值
+# 适用于：监控 GPU 功耗，当功耗低于/高于阈值时触发通知（通常用于检测训练任务完成）
+
+generic_webhook:
+  body: "{\n  \"content\": \"=== GPU 监控通知 ===\\n\\n项目: ${project_name}\\\
+    n\\n检测结果: ${detail}\\n\\nGPU 信息:\\n${gpu_info}\\n\\n阈值设置: <YOUR_THRESHOLD>W\\\
+    n触发模式: <YOUR_TRIGGER_MODE>\\n\\n${anime_quote}\\n————————————\\nTaskNya GPU 监控\",\n\
+    \  \"umo\": \"<YOUR_BOT_NAME>:GroupMessage:<YOUR_GROUP_ID>\",\n\
+    \  \"message_type\": \"text\"\n}"
+  enabled: true
+  headers:
+    Authorization: Bearer <YOUR_API_TOKEN>
+    Content-Type: application/json
+  method: POST
+  retry_count: 3
+  timeout: 10
+  url: <YOUR_WEBHOOK_URL>
+
+monitor:
+  project_name: <YOUR_PROJECT_NAME>
+  check_interval: 60
+  timeout: null
+
+  # GPU 功耗监控配置
+  check_gpu_power_enabled: true
+  check_gpu_power_threshold: 50.0          # 功耗阈值（瓦特）
+  check_gpu_power_gpu_ids: all             # all 或逗号分隔的 GPU ID，如 "0,1,2"
+  check_gpu_power_consecutive_checks: 3    # 连续检测次数
+  check_gpu_power_trigger_mode: below      # below=低于阈值触发, above=高于阈值触发
+
+  # 其他监控默认关闭
+  check_file_enabled: false
+  check_log_enabled: false
+  check_directory_enabled: false
+  check_http_enabled: false
+  check_api_enabled: false
+
+# 其他通知通道默认关闭
+webhook:
+  enabled: false
+  url: ''
+
+email:
+  enabled: false
+
+wecom:
+  enabled: false
+  url: ''

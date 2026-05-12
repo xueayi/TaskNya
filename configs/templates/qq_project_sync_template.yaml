@@ -1,0 +1,47 @@
+# QQ 项目同步通知模板
+# 使用说明：复制此文件并替换 <PLACEHOLDER> 为实际值
+# 适用于：定期同步项目状态，通知团队成员项目进展
+
+generic_webhook:
+  body: "{\n  \"content\": \"=== 项目状态同步 ===\\n\\n项目: <YOUR_PROJECT_NAME>\\\
+    n状态: ${detail}\\n负责人: <YOUR_PROJECT_LEADER>\\n截止日期: <YOUR_DEADLINE>\\\
+    n\\n需要关注:\\n<YOUR_ATTENTION_TASKS>\\n\\n${anime_quote}\\n————————————\\\
+    n来自 TaskNya 自动同步\",\n  \"umo\": \"<YOUR_BOT_NAME>:GroupMessage:<YOUR_GROUP_ID>\",\n\
+    \  \"message_type\": \"text\"\n}"
+  enabled: true
+  headers:
+    Authorization: Bearer <YOUR_API_TOKEN>
+    Content-Type: application/json
+  method: POST
+  retry_count: 3
+  timeout: 10
+  url: <YOUR_WEBHOOK_URL>
+
+monitor:
+  project_name: <YOUR_PROJECT_NAME>
+  check_interval: 3600  # 每小时同步一次
+  timeout: null
+
+  # 项目同步通常使用 API 触发或定时任务
+  check_api_enabled: true
+  check_api_port: 9870
+  check_api_auth_token: <YOUR_AUTH_TOKEN>
+
+  # 其他监控默认关闭
+  check_file_enabled: false
+  check_log_enabled: false
+  check_directory_enabled: false
+  check_gpu_power_enabled: false
+  check_http_enabled: false
+
+# 其他通知通道默认关闭
+webhook:
+  enabled: false
+  url: ''
+
+email:
+  enabled: false
+
+wecom:
+  enabled: false
+  url: ''

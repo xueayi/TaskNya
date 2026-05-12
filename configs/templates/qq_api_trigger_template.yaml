@@ -1,0 +1,46 @@
+# QQ API 被动触发通知模板
+# 使用说明：复制此文件并替换 <PLACEHOLDER> 为实际值
+# 适用于：通过 API 端点被动触发通知，适合集成到 CI/CD 流水线
+
+generic_webhook:
+  body: "{\n  \"content\": \"=== API 触发通知 ===\\n\\n项目: ${project_name}\\\
+    n\\n触发消息: ${detail}\\n\\n触发方式: API 被动触发\\n监听端口: <YOUR_API_PORT>\\\
+    n\\n${anime_quote}\\n————————————\\nTaskNya API 触发\",\n  \"umo\": \"<YOUR_BOT_NAME>:GroupMessage:<YOUR_GROUP_ID>\",\n\
+    \  \"message_type\": \"text\"\n}"
+  enabled: true
+  headers:
+    Authorization: Bearer <YOUR_API_TOKEN>
+    Content-Type: application/json
+  method: POST
+  retry_count: 3
+  timeout: 10
+  url: <YOUR_WEBHOOK_URL>
+
+monitor:
+  project_name: <YOUR_PROJECT_NAME>
+  check_interval: 60
+  timeout: null
+
+  # API 被动触发配置
+  check_api_enabled: true
+  check_api_port: 9870
+  check_api_auth_token: <YOUR_AUTH_TOKEN>  # 留空则不需要认证
+
+  # 其他监控默认关闭
+  check_file_enabled: false
+  check_log_enabled: false
+  check_directory_enabled: false
+  check_gpu_power_enabled: false
+  check_http_enabled: false
+
+# 其他通知通道默认关闭
+webhook:
+  enabled: false
+  url: ''
+
+email:
+  enabled: false
+
+wecom:
+  enabled: false
+  url: ''

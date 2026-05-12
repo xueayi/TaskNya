@@ -1,0 +1,52 @@
+# QQ 日志检测通知模板
+# 使用说明：复制此文件并替换 <PLACEHOLDER> 为实际值
+# 适用于：监控日志文件中的特定关键词，检测到后触发通知
+
+generic_webhook:
+  body: "{\n  \"content\": \"=== 日志检测通知 ===\\n\\n项目: ${project_name}\\\
+    n\\n检测到关键词: ${detail}\\n日志路径: <YOUR_LOG_PATH>\\n\\n检测模式: 全量扫描\\\
+    n\\n${anime_quote}\\n————————————\\nTaskNya 日志监控\",\n  \"umo\": \"<YOUR_BOT_NAME>:GroupMessage:<YOUR_GROUP_ID>\",\n\
+    \  \"message_type\": \"text\"\n}"
+  enabled: true
+  headers:
+    Authorization: Bearer <YOUR_API_TOKEN>
+    Content-Type: application/json
+  method: POST
+  retry_count: 3
+  timeout: 10
+  url: <YOUR_WEBHOOK_URL>
+
+monitor:
+  project_name: <YOUR_PROJECT_NAME>
+  check_interval: 60
+  timeout: null
+
+  # 日志检测配置
+  check_log_enabled: true
+  check_log_path: /path/to/your/logfile.log
+  check_log_markers:
+    - 完成
+    - done
+    - success
+    - error
+    - failed
+  check_log_mode: full  # full=全量检测, incremental=增量检测
+
+  # 其他监控默认关闭
+  check_file_enabled: false
+  check_directory_enabled: false
+  check_gpu_power_enabled: false
+  check_http_enabled: false
+  check_api_enabled: false
+
+# 其他通知通道默认关闭
+webhook:
+  enabled: false
+  url: ''
+
+email:
+  enabled: false
+
+wecom:
+  enabled: false
+  url: ''

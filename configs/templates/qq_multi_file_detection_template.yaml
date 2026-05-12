@@ -1,0 +1,58 @@
+# QQ 目录/多文件监控通知模板
+# 使用说明：复制此文件并替换 <PLACEHOLDER> 为实际值
+# 适用于：监控目录变化，检测文件新增、删除、修改事件
+
+generic_webhook:
+  body: "{\n  \"content\": \"=== 目录监控通知 ===\\n\\n项目: ${project_name}\\\
+    n\\n变化统计: ${report_summary}\\n\\n文件变更:\\n${report_change_list}\\\
+    n\\n建议操作: ${report_actions}\\n\\n监控目录: <YOUR_WATCH_DIR>\\n\\n${anime_quote}\\\
+    n————————————\\nTaskNya 目录监控\",\n  \"umo\": \"<YOUR_BOT_NAME>:GroupMessage:<YOUR_GROUP_ID>\",\n\
+    \  \"message_type\": \"text\"\n}"
+  enabled: true
+  headers:
+    Authorization: Bearer <YOUR_API_TOKEN>
+    Content-Type: application/json
+  method: POST
+  retry_count: 3
+  timeout: 10
+  url: <YOUR_WEBHOOK_URL>
+
+# 以下为监控配置，可根据需要启用
+monitor:
+  project_name: <YOUR_PROJECT_NAME>
+  check_interval: 600
+  timeout: null
+
+  # 日志检测（按需启用）
+  check_log_enabled: false
+  check_log_path: /path/to/your/logfile.log
+  check_log_markers:
+    - 完成
+    - done
+  check_log_mode: full
+
+  # 目录监控（按需启用）
+  check_directory_enabled: false
+  check_directory_path: /path/to/watch/directory
+  check_directory_detect_added: true
+  check_directory_detect_modified: false
+  check_directory_detect_removed: false
+  check_directory_continuous_mode: true
+
+  # 其他通道默认关闭
+  check_file_enabled: false
+  check_gpu_power_enabled: false
+  check_http_enabled: false
+  check_api_enabled: false
+
+# 其他通知通道默认关闭
+webhook:
+  enabled: false
+  url: ''
+
+email:
+  enabled: false
+
+wecom:
+  enabled: false
+  url: ''

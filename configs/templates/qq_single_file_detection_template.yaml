@@ -1,0 +1,47 @@
+# QQ 单文件检测通知模板
+# 使用说明：复制此文件并替换 <PLACEHOLDER> 为实际值
+# 适用于：监控单个文件的创建或删除事件
+
+generic_webhook:
+  body: "{\n  \"content\": \"=== 文件检测通知 ===\\n\\n项目: ${project_name}\\\
+    n\\n检测事件: ${method}\\n文件: ${detail}\\n\\n监控路径: <YOUR_FILE_PATH>\\\
+    n\\n${anime_quote}\\n————————————\\nTaskNya 文件监控\",\n  \"umo\": \"<YOUR_BOT_NAME>:GroupMessage:<YOUR_GROUP_ID>\",\n\
+    \  \"message_type\": \"text\"\n}"
+  enabled: true
+  headers:
+    Authorization: Bearer <YOUR_API_TOKEN>
+    Content-Type: application/json
+  method: POST
+  retry_count: 3
+  timeout: 10
+  url: <YOUR_WEBHOOK_URL>
+
+monitor:
+  project_name: <YOUR_PROJECT_NAME>
+  check_interval: 30
+  timeout: null
+
+  # 单文件检测配置
+  check_file_enabled: true
+  check_file_path: /path/to/watch/file.txt
+  check_file_detect_deletion: true  # 是否检测文件删除
+  check_file_recheck_delay: 5      # 二次检查延迟（秒），0=禁用
+
+  # 其他监控默认关闭
+  check_log_enabled: false
+  check_directory_enabled: false
+  check_gpu_power_enabled: false
+  check_http_enabled: false
+  check_api_enabled: false
+
+# 其他通知通道默认关闭
+webhook:
+  enabled: false
+  url: ''
+
+email:
+  enabled: false
+
+wecom:
+  enabled: false
+  url: ''

@@ -39,6 +39,7 @@ logs/
 # Project specific
 configs/*
 !configs/default.yaml
+!configs/templates/
 output/
 monitor.log
 webui.log

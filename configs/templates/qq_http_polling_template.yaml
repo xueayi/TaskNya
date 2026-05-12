@@ -1,0 +1,55 @@
+# QQ HTTP 轮询检测通知模板
+# 使用说明：复制此文件并替换 <PLACEHOLDER> 为实际值
+# 适用于：定期轮询 HTTP 端点，根据响应状态或内容触发通知
+
+generic_webhook:
+  body: "{\n  \"content\": \"=== HTTP 轮询通知 ===\\n\\n项目: ${project_name}\\\
+    n\\n检测结果: ${detail}\\n\\n目标地址: <YOUR_TARGET_URL>\\n请求方式: GET\\\
+    n期望状态: 200\\n期望关键词: success, completed\\n\\n${anime_quote}\\n————————————\\\
+    nTaskNya HTTP 监控\",\n  \"umo\": \"<YOUR_BOT_NAME>:GroupMessage:<YOUR_GROUP_ID>\",\n\
+    \  \"message_type\": \"text\"\n}"
+  enabled: true
+  headers:
+    Authorization: Bearer <YOUR_API_TOKEN>
+    Content-Type: application/json
+  method: POST
+  retry_count: 3
+  timeout: 10
+  url: <YOUR_WEBHOOK_URL>
+
+monitor:
+  project_name: <YOUR_PROJECT_NAME>
+  check_interval: 300
+  timeout: null
+
+  # HTTP 轮询检测配置
+  check_http_enabled: true
+  check_http_url: <YOUR_TARGET_URL>
+  check_http_method: GET
+  check_http_headers:
+    Authorization: Bearer <YOUR_TARGET_API_TOKEN>
+  check_http_body: ''
+  check_http_expected_status: 200
+  check_http_expected_keywords:
+    - success
+    - completed
+  check_http_timeout: 10
+
+  # 其他监控默认关闭
+  check_file_enabled: false
+  check_log_enabled: false
+  check_directory_enabled: false
+  check_gpu_power_enabled: false
+  check_api_enabled: false
+
+# 其他通知通道默认关闭
+webhook:
+  enabled: false
+  url: ''
+
+email:
+  enabled: false
+
+wecom:
+  enabled: false
+  url: ''
