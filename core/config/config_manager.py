@@ -217,3 +217,18 @@ class ConfigManager:
                 if filename.endswith('.yaml') or filename.endswith('.yml'):
                     configs.append(filename)
         return configs
+
+    def list_templates(self) -> list:
+        """
+        列出 configs/templates/ 目录下的预设模板文件
+        
+        Returns:
+            模板文件名列表（相对于 templates/ 子目录）
+        """
+        templates = []
+        templates_dir = os.path.join(self.config_dir, 'templates')
+        if os.path.exists(templates_dir):
+            for filename in sorted(os.listdir(templates_dir)):
+                if filename.endswith('.yaml') or filename.endswith('.yml'):
+                    templates.append(filename)
+        return templates

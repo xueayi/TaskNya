@@ -64,24 +64,29 @@ async function saveConfigWithName() {
 // 加载配置列表
 async function loadConfigList() {
     try {
-        const response = await fetch('/api/configs');
-        const configs = await response.json();
+        const configRes = await fetch('/api/configs');
+        const configs = await configRes.json();
+
+        let templates = [];
+        try {
+            const templateRes = await fetch('/api/templates');
+            if (templateRes.ok) templates = await templateRes.json();
+        } catch (e) { /* 模板接口不可用时降级 */ }
 
         const configList = document.getElementById('configList');
         configList.innerHTML = '';
 
+        // 已保存的配置
         configs.forEach(filename => {
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center';
 
-            // 配置名称
             const nameSpan = document.createElement('span');
             nameSpan.textContent = filename;
             nameSpan.style.cursor = 'pointer';
             nameSpan.onclick = () => loadConfig(filename);
             li.appendChild(nameSpan);
 
-            // 删除按钮 (不显示默认配置的删除按钮)
             if (filename !== 'default.yaml') {
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'btn btn-sm btn-outline-danger';
@@ -96,10 +101,151 @@ async function loadConfigList() {
             configList.appendChild(li);
         });
 
+        // 预设模板
+        if (templates.length > 0) {
+            const divider = document.createElement('li');
+            divider.className = 'list-group-item list-group-item-secondary text-center fw-bold';
+            divider.textContent = '预设模板 (configs/templates/)';
+            configList.appendChild(divider);
+
+            templates.forEach(filename => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = filename;
+                nameSpan.style.cursor = 'pointer';
+                nameSpan.onclick = () => loadTemplate(filename);
+
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-info';
+                badge.textContent = '模板';
+
+                li.appendChild(nameSpan);
+                li.appendChild(badge);
+                configList.appendChild(li);
+            });
+        }
+
         const modal = new bootstrap.Modal(document.getElementById('configListModal'));
         modal.show();
     } catch (error) {
         alert('加载配置列表失败：' + error.message);
+    }
+}
+
+// 加载预设模板（不覆盖 default.yaml）
+async function loadTemplate(filename) {
+    try {
+        const response = await fetch(`/api/template/load/${filename}`);
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            const config = result.config;
+
+            document.querySelectorAll('[data-instance]').forEach(el => el.remove());
+
+            const instanceSuffixes = new Set();
+            const allSections = ['monitor', 'webhook', 'generic_webhook', 'wecom', 'email'];
+            allSections.forEach(sec => {
+                if (!config[sec]) return;
+                Object.keys(config[sec]).forEach(k => {
+                    const m = k.match(/__(\d+)$/);
+                    if (m) instanceSuffixes.add(m[0]);
+                });
+            });
+
+            if (config.monitor) {
+                instanceSuffixes.forEach(suffix => {
+                    const types = ['file_check', 'log_check', 'gpu_check', 'directory_check', 'http_check', 'api_trigger'];
+                    types.forEach(t => {
+                        const probe = t === 'gpu_check' ? 'check_gpu_power_enabled' : t === 'api_trigger' ? 'check_api_enabled' : `check_${t.replace('_check','').replace('_trigger','')}_enabled`;
+                        const enabledKey = probe.replace('check_file_check', 'check_file').replace('check_log_check', 'check_log')
+                            .replace('check_directory_check', 'check_directory').replace('check_http_check', 'check_http');
+                        if (config.monitor[enabledKey + suffix] !== undefined) {
+                            addModuleCard(t);
+                        }
+                    });
+                });
+            }
+            ['webhook', 'generic_webhook', 'wecom', 'email'].forEach(sec => {
+                if (!config[sec]) return;
+                instanceSuffixes.forEach(suffix => {
+                    if (config[sec]['enabled' + suffix] !== undefined) {
+                        addModuleCard(sec);
+                    }
+                });
+            });
+
+            _loadSectionFields(config, 'monitor', (key, value) => {
+                const baseKey = _stripInstanceSuffix(key);
+                if (baseKey === 'check_http_headers' && value && typeof value === 'object') return JSON.stringify(value);
+                if (value === null) return 'None';
+                return value;
+            });
+            _loadSectionFields(config, 'webhook');
+            _loadSectionFields(config, 'generic_webhook', (key, value) => {
+                const baseKey = _stripInstanceSuffix(key);
+                if (baseKey === 'headers' && value && typeof value === 'object') return JSON.stringify(value, null, 2);
+                return value;
+            });
+            _loadSectionFields(config, 'wecom');
+            _loadSectionFields(config, 'email');
+
+            toggleCustomTextArea('webhook');
+            toggleCustomTextArea('wecom');
+            toggleCustomTextArea('email');
+
+            _loadTagRows('logMarkerRows', config.monitor, 'check_log_markers');
+            _loadTagRows('excludeKeywordRows', config.monitor, 'check_directory_exclude_keywords');
+            _loadTagRows('httpKeywordRows', config.monitor, 'check_http_expected_keywords');
+            _loadActionKeywordRows('actionKeywordRows', config.monitor, 'check_directory_action_keywords');
+
+            instanceSuffixes.forEach(suffix => {
+                _loadTagRows('logMarkerRows' + suffix, config.monitor, 'check_log_markers' + suffix);
+                _loadTagRows('excludeKeywordRows' + suffix, config.monitor, 'check_directory_exclude_keywords' + suffix);
+                _loadTagRows('httpKeywordRows' + suffix, config.monitor, 'check_http_expected_keywords' + suffix);
+                _loadActionKeywordRows('actionKeywordRows' + suffix, config.monitor, 'check_directory_action_keywords' + suffix);
+            });
+
+            initModuleVisibility();
+
+            if (typeof initTimeInput === 'function') {
+                initTimeInput('check_interval', config.monitor.check_interval);
+                initTimeInput('logprint', config.monitor.logprint);
+                initTimeInput('timeout', config.monitor.timeout);
+            }
+
+            if (typeof populateHeaderFieldsFromJson === 'function' && config.generic_webhook) {
+                const headers = config.generic_webhook.headers;
+                if (headers) {
+                    try {
+                        const headersObj = typeof headers === 'string' ? JSON.parse(headers) : headers;
+                        populateHeaderFieldsFromJson(headersObj);
+                    } catch (e) { /* keep existing */ }
+                }
+            }
+
+            if (typeof populateFieldsFromJson === 'function' && config.generic_webhook && config.generic_webhook.body) {
+                try {
+                    const bodyObj = JSON.parse(config.generic_webhook.body);
+                    populateFieldsFromJson(bodyObj);
+                } catch (e) { /* keep existing */ }
+                if (typeof updateJsonPreview === 'function') updateJsonPreview();
+            }
+
+            if (typeof updateFeishuPreview === 'function') updateFeishuPreview();
+            if (typeof updateWecomPreview === 'function') updateWecomPreview();
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('configListModal'));
+            modal.hide();
+
+            appendLog(`已加载模板: ${filename}（未写入 default.yaml，请手动应用或保存）`);
+        } else {
+            appendLog('加载模板失败：' + result.message);
+        }
+    } catch (error) {
+        appendLog('加载模板失败：' + error);
     }
 }
 

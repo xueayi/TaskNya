@@ -20,6 +20,8 @@ python main.py --trigger --message "部署完成"       # 自定义消息文案
 python main.py --trigger --config prod.yaml --message "训练任务已由 CI 收口"
 ```
 
+> **`--message` 与内联变量**：`--message` 的文本会填充到 `${detail}` 变量中。如果你的通用 Webhook Body 模板中使用了 `${detail}`，它将显示 `--message` 的内容；其他渠道（飞书/企业微信/邮件）如果启用了自定义文本且使用了 `${detail}`，同样可以展示该消息。详见 [内联变量参考](inline_variables.md)。
+
 ## 测试通知渠道
 
 `--test-channel` 用于**单独调试某一类通知渠道的连通性与展示效果**。程序不会启动监控循环，只对选中的渠道（或全部）做一次测试投递。
@@ -75,17 +77,27 @@ python webui.py --debug             # 调试模式
 ## 后台运行（Linux/macOS）
 
 ```bash
-bash manage_webui.sh start          # 启动
+bash manage_webui.sh start          # 默认端口 9870 启动
+bash manage_webui.sh start 8080     # 指定端口 8080 启动
 bash manage_webui.sh stop           # 停止
-bash manage_webui.sh restart        # 重启
+bash manage_webui.sh restart        # 重启（默认端口）
+bash manage_webui.sh restart 8080   # 指定端口重启
 bash manage_webui.sh status         # 查看状态
+```
+
+## Windows 启动
+
+```bash
+start_webui.bat                     # 默认端口 9870
+start_webui.bat 8080                # 指定端口 8080
 ```
 
 ## 快捷启动脚本
 
 ```bash
-bash run_monitor.sh                 # 交互选择配置文件
-bash run_monitor.sh --config my.yaml  # 直接指定
+bash run_monitor.sh                       # 交互选择配置文件
+bash run_monitor.sh --config my.yaml      # 直接指定
+bash run_monitor.sh --port 8080           # 指定 API 触发端口
 ```
 
 ## 被动触发（API 端口）

@@ -17,7 +17,6 @@ class TestGenericWebhookNotifier:
             "body": "",
             "retry_count": 0,
             "timeout": 5,
-            "anime_quote_enabled": False,
         }
 
     @pytest.fixture

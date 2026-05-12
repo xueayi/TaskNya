@@ -1,3 +1,26 @@
+## v1.3.1 更新日志
+
+### Bug 修复
+
+- **修复 CLI `--message` 文本未填充到 `${detail}` 变量**：`build_training_info` 之前仅在「日志检测」「目标文件检测」时保存 detail，手动触发时 `${detail}` 为空；现已始终写入
+- **修复下拉菜单被配置框遮盖**：`.card` 的 `overflow: hidden` 导致「添加检测方法」和「添加通知渠道」的下拉菜单在模块为空时被裁剪，改为 `overflow: visible` 并补偿圆角
+
+### 改进
+
+- **移除无效的 `anime_quote_enabled` 配置字段**：该字段从未被代码读取，语录功能由模板中是否包含 `${anime_quote}` 占位符自动驱动；已从默认配置、所有预设模板和测试文件中清除
+- **WebUI 支持加载预设模板**：点击「加载配置」弹窗新增 `configs/templates/` 预设模板区域，加载模板不覆盖 default.yaml
+- **启动脚本支持自定义端口**：`start_webui.bat`、`manage_webui.sh`、`run_monitor.sh` 均支持通过参数指定端口，启动时打印访问 URL
+- **缺省配置修正**：所有通知渠道默认关闭（`webhook`、`email` 原为 `True`），清理占位示例数据
+- **静态资源缓存清除**：CSS/JS 引用添加 `?v={{ version }}`，版本更新后自动加载最新文件
+
+### 文档
+
+- `cli_usage.md`：补充端口参数用法、`--message` 与 `${detail}` 的关联说明
+- `inline_variables.md`：`${detail}` 说明中补充 CLI `--message` 来源
+- `README.md`：新增自定义端口启动示例
+
+---
+
 ## v1.3.0 更新日志
 
 ### Bug 修复

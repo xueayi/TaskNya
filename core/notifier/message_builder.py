@@ -65,6 +65,7 @@ class MessageBuilder:
             "project_name": project_name,
             "hostname": hostname,
             "method": method,
+            "detail": detail or "",
             
             # 标题配置
             "project_name_title": self.config.get('include_project_name_title', '训练项目'),
@@ -76,7 +77,7 @@ class MessageBuilder:
             "gpu_info_title": self.config.get('include_gpu_info_title', 'GPU信息'),
         }
         
-        # 根据触发方式添加详情
+        # 根据触发方式添加额外字段
         if method == "日志检测" and detail:
             training_info["keyword"] = detail
             training_info["keyword_title"] = "触发关键词"

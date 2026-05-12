@@ -70,8 +70,8 @@ DEFAULT_CONFIG = {
     },
     
     "webhook": {
-        "enabled": True,
-        "url": "https://test.webhook.url/hook",
+        "enabled": False,
+        "url": "",
         "title": "测试通知",
         "color": "green",
         "custom_text_enabled": False,
@@ -109,13 +109,12 @@ DEFAULT_CONFIG = {
     # 通用 Webhook 配置
     "generic_webhook": {
         "enabled": False,
-        "url": "http://xxxx.xxx.xxxx:10010/send",
-        "method": "POST",  # POST, PUT, GET, DELETE
+        "url": "",
+        "method": "POST",
         "headers": {
-            "Authorization": "Bearer xxxxxxxx",
             "Content-Type": "application/json"
         },
-        "body": "{\n  \"content\": \"[ ${project_name} ]\\n----------------------------\\n触发方式: ${method}\\n触发详情: ${detail}\\n----------------------------\\n[ 数据统计 ]\\n报告统计: ${report_summary}\\n变更列表: ${report_change_list}\\n提示: ${report_actions}\\n----------------------------\\n详情查看: https://xxxx.xxxx.xxxx:xxxx\\n\\n${anime_quote}\\n[ 来自 XiaoXue-TaskNya 推送 ]\",\n  \"umo\": \"飘雪:GroupMessage:xxxxxxxx\",\n  \"message_type\": \"text\"\n}",
+        "body": "{\n  \"content\": \"[${project_name}] ${method}: ${detail}\\n耗时: ${duration}\\n${anime_quote}\"\n}",
         "retry_count": 2,
         "timeout": 10,
     },
@@ -151,7 +150,7 @@ DEFAULT_CONFIG = {
     },
     
     "email": {
-        "enabled": True,
+        "enabled": False,
         "smtp_server": "smtp.qq.com",
         "smtp_port": 465,
         "smtp_user": "",
@@ -172,7 +171,7 @@ DEFAULT_CONFIG = {
         "include_method": True,
         "include_duration": True,
         "include_hostname": True,
-        "include_gpu_info": True,
+        "include_gpu_info": False,
         
         # 目录监控报告显示选项
         "include_report_summary": True,    # 显示报告摘要统计

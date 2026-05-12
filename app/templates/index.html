@@ -10,9 +10,9 @@
     <!-- 引入Bootstrap Icons -->
     <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <!-- 引入自定义主题CSS -->
-    <link href="{{ url_for('static', filename='css/themes.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/themes.css') }}?v={{ version }}" rel="stylesheet">
     <!-- 引入自定义样式CSS -->
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}?v={{ version }}" rel="stylesheet">
     <!-- 预载入字体 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1376,10 +1376,10 @@
 
         <!-- 配置列表模态框 -->
         <div class="modal fade" id="configListModal" tabindex="-1">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">已保存的配置</h5>
+                        <h5 class="modal-title">配置列表 / 预设模板</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -1831,8 +1831,8 @@
             });
         </script>
         <script src="https://cdn.bootcdn.net/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-        <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/theme.js') }}?v={{ version }}"></script>
+        <script src="{{ url_for('static', filename='js/main.js') }}?v={{ version }}"></script>
         <script>
             // 更新状态徽章
             function updateStatusBadge(status) {

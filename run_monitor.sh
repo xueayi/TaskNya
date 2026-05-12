@@ -6,12 +6,13 @@ CONFIG_DIR="configs"
 DEFAULT_CONFIG="$CONFIG_DIR/default.yaml"
 
 usage() {
-    echo "用法: $0 [--config <配置文件>] [--trigger [--message <消息>]]"
+    echo "用法: $0 [--config <配置文件>] [--trigger [--message <消息>]] [--port <端口>]"
     echo ""
     echo "选项:"
     echo "  --config <path>    指定配置文件路径"
     echo "  --trigger          跳过检测，直接触发通知"
     echo "  --message <text>   触发时附带的自定义消息"
+    echo "  --port <number>    指定 API 触发端口（覆盖配置中的 check_api_port）"
     echo ""
     echo "无参数运行时将列出已保存的配置供选择。"
 }
@@ -44,10 +45,15 @@ select_config() {
 
 print_summary() {
     local config_file="$1"
+    local port="$2"
     echo "========================================"
     echo "  TaskNya 监控启动"
     echo "========================================"
     echo "  配置文件: $config_file"
+    if [ -n "$port" ]; then
+        echo "  API 端口: $port"
+        echo "  触发地址: http://localhost:$port/api/trigger"
+    fi
     echo "========================================"
 }
 
@@ -55,6 +61,7 @@ print_summary() {
 CONFIG=""
 TRIGGER=""
 MESSAGE=""
+PORT=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -68,6 +75,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --message)
             MESSAGE="--message $2"
+            shift 2
+            ;;
+        --port)
+            PORT="$2"
             shift 2
             ;;
         -h|--help)
@@ -101,7 +112,7 @@ fi
 
 # 打印摘要并启动
 if [ -n "$CONFIG" ]; then
-    print_summary "$CONFIG"
+    print_summary "$CONFIG" "$PORT"
 fi
 
 echo "执行: $CMD"

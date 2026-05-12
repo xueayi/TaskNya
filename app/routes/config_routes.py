@@ -54,6 +54,54 @@ def list_configs():
     return jsonify(configs)
 
 
+@config_bp.route('/templates', methods=['GET'])
+def list_templates():
+    """
+    列出 configs/templates/ 下的预设模板文件
+    
+    Returns:
+        JSON: 模板文件名列表
+    """
+    templates = _config_manager.list_templates()
+    return jsonify(templates)
+
+
+@config_bp.route('/template/load/<filename>', methods=['GET'])
+def load_template(filename):
+    """
+    加载指定的预设模板文件（不覆盖 default.yaml）
+    
+    Args:
+        filename: 模板文件名
+        
+    Returns:
+        JSON: 加载的配置
+    """
+    try:
+        safe_filename = os.path.basename(filename)
+        template_path = os.path.join(CONFIG_DIR, 'templates', safe_filename)
+        config = _config_manager.load_config(template_path)
+        
+        if config:
+            logger.info(f"已加载模板: {safe_filename}")
+            return jsonify({
+                'status': 'success',
+                'config': config
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': '无法加载模板文件'
+            }), 404
+            
+    except Exception as e:
+        logger.error(f"加载模板失败: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
 @config_bp.route('/config/save', methods=['POST'])
 def save_config():
     """

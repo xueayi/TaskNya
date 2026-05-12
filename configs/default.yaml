@@ -30,7 +30,6 @@ email:
   title: 🎉 xx通知
   use_ssl: true
 generic_webhook:
-  anime_quote_enabled: true
   body: "{\n  \"content\": \"[ ${project_name} ]\\n----------------------------\\\
     n触发方式: ${method}\\n触发详情: ${detail}\\n----------------------------\\n[ 数据统计 ]\\\
     n报告统计: ${report_summary}\\n变更列表: ${report_change_list}\\n提示: ${report_actions}\\\

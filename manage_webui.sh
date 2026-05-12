@@ -4,6 +4,7 @@
 APP_NAME="webui.py"
 LOG_FILE="output.log"
 PYTHON_BIN="python3"
+PORT="${2:-9870}"
 
 # --- 逻辑处理 ---
 
@@ -17,13 +18,17 @@ start() {
     if [ -n "$pid" ]; then
         echo "警告: $APP_NAME 已经在运行中 (PID: $pid)"
     else
-        echo "正在启动 $APP_NAME..."
+        echo "正在启动 $APP_NAME (端口: $PORT)..."
         # 核心启动命令
-        nohup $PYTHON_BIN $APP_NAME > $LOG_FILE 2>&1 &
+        nohup $PYTHON_BIN $APP_NAME --port $PORT > $LOG_FILE 2>&1 &
         sleep 1
         new_pid=$(get_pid)
         if [ -n "$new_pid" ]; then
             echo "启动成功！PID: $new_pid"
+            echo ""
+            echo "  访问地址: http://0.0.0.0:$PORT"
+            echo "  本地访问: http://localhost:$PORT"
+            echo ""
             echo "日志输出位置: $LOG_FILE"
         else
             echo "启动失败，请检查日志。"
@@ -78,6 +83,11 @@ case "$1" in
         start
         ;;
     *)
-        echo "用法: $0 {start|stop|restart|status}"
+        echo "用法: $0 {start|stop|restart|status} [端口号]"
+        echo ""
+        echo "示例:"
+        echo "  $0 start          # 使用默认端口 9870 启动"
+        echo "  $0 start 8080     # 使用端口 8080 启动"
+        echo "  $0 restart 8080   # 使用端口 8080 重启"
         exit 1
 esac

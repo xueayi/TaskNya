@@ -96,6 +96,13 @@ python webui.py
 
 浏览器访问：`http://localhost:9870`
 
+> **自定义端口**：所有启动方式均支持手动指定端口（默认 `9870`）：
+> ```bash
+> python webui.py --port 8080                        # Python 直接启动
+> bash manage_webui.sh start 8080                    # Linux/macOS 后台管理
+> start_webui.bat 8080                               # Windows
+> ```
+
 ### 命令行快速启动（无需 Web UI）
 
 ```bash
@@ -103,6 +110,7 @@ python main.py                                    # 启动监控（默认配置�
 python main.py --trigger                          # 手动触发通知（测试用）
 python main.py --trigger --message "训练完成"      # 附带自定义消息
 bash run_monitor.sh                               # 交互选择配置并启动
+bash run_monitor.sh --port 8080                   # 指定 API 触发端口
 ```
 
 详见 [CLI 使用指南](docs/cli_usage.md)

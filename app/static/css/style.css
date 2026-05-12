@@ -11,7 +11,7 @@ body {
     border-color: var(--card-border);
     box-shadow: var(--card-shadow);
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible;
     transition: background-color var(--transition-speed), 
                 border-color var(--transition-speed), 
                 box-shadow var(--transition-speed);
@@ -25,6 +25,10 @@ body {
     padding: 0.75rem 1.25rem;
     transition: background-color var(--transition-speed), 
                 color var(--transition-speed);
+}
+
+.card > .card-header:first-child {
+    border-radius: 8px 8px 0 0;
 }
 
 .card-header h3 {
